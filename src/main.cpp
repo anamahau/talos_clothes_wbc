@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     std::string secondArm;
     // ros::Publisher point_cloud_trigger_pub = node_handle.advertise<std_msgs::Int32>("/PCrequest", 1, true);
     ros::Publisher point_cloud_trigger_pub = node_handle.advertise<std_msgs::Int32>("/PCrequest", 1, false);
-    ros::Publisher cedirnet_trigger_pub = node_handle.advertise<std_msgs::Bool>("/data_recorder/trigger", 1, false);
+    ros::Publisher data_recorder_trigger_pub = node_handle.advertise<std_msgs::Bool>("/data_recorder/trigger", 1, false);
     std::vector<double> headJointsDown = {0.6, 0.0};
     std::vector<double> headJointsUp = {0.0, 0.0};
     std::vector<float> maxPoint;
@@ -709,7 +709,7 @@ int main(int argc, char **argv)
     if (x == 1)
     {
         msgBool.data = true;
-        cedirnet_trigger_pub.publish(msgBool);
+        data_recorder_trigger_pub.publish(msgBool);
     }
     else if (x != 2)
     {
