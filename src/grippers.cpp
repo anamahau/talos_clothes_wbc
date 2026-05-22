@@ -20,9 +20,16 @@ bool grippers::openGripper(const std::string& LorR)
     return grippers::sendCommand(LorR, OPEN_POS);
 }
 
-bool grippers::closeGripper(const std::string& LorR)
+bool grippers::closeGripper(const std::string& LorR, const int number)
 {
-    return grippers::sendCommand(LorR, CLOSE_POS);
+    if (number == 1)
+    {
+        return grippers::sendCommand(LorR, CLOSE_POS_1);
+    }
+    else if (number == 2)
+    {
+        return grippers::sendCommand(LorR, CLOSE_POS_2);
+    }
 }
 
 bool grippers::sendCommand(const std::string& LorR, double target_pos)

@@ -1,19 +1,5 @@
-#include <iostream>
-#include <typeinfo>
+#include <talos_clothes_wbc/main.h>
 
-#include <std_msgs/Bool.h>
-#include <std_msgs/Int32.h>
-#include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/Float32.h>
-#include <geometry_msgs/PoseStamped.h>
-
-#include <talos_clothes_wbc/grippers.h>
-#include <talos_clothes_wbc/head_move.h>
-#include <talos_clothes_wbc/arms_move.h>
-#include "cloth_detection/cloth_detection_depth.h"
-
-
-bool headMoveDone = false;
 
 void doneCallback(const std_msgs::Bool::ConstPtr& msg)
 {
@@ -30,34 +16,14 @@ int main(int argc, char **argv)
     headMove H(node_handle);
     armsMove A(node_handle);
 
-    bool success;
-    float x;
-    float headDuration = 0.2;
-    bool firstRight = true;
-    std_msgs::Int32 msgInt32;
-    std_msgs::Bool msgBool;
-    std_msgs::Float32MultiArrayConstPtr msgMax;
-    std_msgs::Float32MultiArrayConstPtr msgMin;
-    geometry_msgs::PoseStampedConstPtr msgCedirnet;
-    std_msgs::Float32ConstPtr msgTableHeight;
-    std::string firstArm;
-    std::string secondArm;
     // ros::Publisher point_cloud_trigger_pub = node_handle.advertise<std_msgs::Int32>("/PCrequest", 1, true);
     ros::Publisher point_cloud_trigger_pub = node_handle.advertise<std_msgs::Int32>("/PCrequest", 1, false);
     ros::Publisher data_recorder_trigger_pub = node_handle.advertise<std_msgs::Bool>("/data_recorder/trigger", 1, false);
-    std::vector<double> headJointsDown = {0.6, 0.0};
-    std::vector<double> headJointsUp = {0.0, 0.0};
-    std::vector<float> maxPoint;
-    std::vector<float> minPoint;
-    float tableHeight;
-    float gripperLength = 0.12;
-
-
 
     /* ******************** 1 ******************** */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 1 ~ move both hands");
-    std::cout << "\t Press 1 to execute command or 2 to skip this command: ";
+    std::cout << "\t Press 1 to move right arm or 2 to skip this command: ";
     std::cin >> x;
 
     if (x == 1)
@@ -69,7 +35,17 @@ int main(int argc, char **argv)
         {
             return 0;
         }
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }
 
+    std::cout << "\t Press 1 to move left arm or 2 to skip this command: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
         std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.3, 0.4, 0.3};
         success = A.absoluteMoveL(poseL);
 
@@ -319,11 +295,11 @@ int main(int argc, char **argv)
     {
         if (firstRight)
         {
-            G.closeGripper("R");
+            G.closeGripper("R", 1);
         }
         else
         {
-            G.closeGripper("L");
+            G.closeGripper("L", 1);
         }
         ros::Duration(2.0).sleep();
     }
@@ -544,11 +520,11 @@ int main(int argc, char **argv)
     {
         if (firstRight)
         {
-            G.closeGripper("L");
+            G.closeGripper("L", 2);
         }
         else
         {
-            G.closeGripper("R");
+            G.closeGripper("R", 2);
         }
         ros::Duration(2.0).sleep();
     }
@@ -780,11 +756,11 @@ int main(int argc, char **argv)
     {
         if (firstRight)
         {
-            G.closeGripper("R");
+            G.closeGripper("R", 2);
         }
         else
         {
-            G.closeGripper("L");
+            G.closeGripper("L", 2);
         }
         ros::Duration(2.0).sleep();
     }
