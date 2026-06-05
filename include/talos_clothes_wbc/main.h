@@ -31,6 +31,7 @@ std_msgs::Float32ConstPtr msgTableHeight;
 std::string firstArm;
 std::string secondArm;
 std::vector<double> headJointsDown = {0.6, 0.0};
+std::vector<double> headJointsDown_rs = {0.65, 0.0};
 std::vector<double> headJointsUp = {0.0, 0.0};
 std::vector<float> maxPoint;
 std::vector<float> minPoint;

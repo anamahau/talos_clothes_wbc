@@ -359,35 +359,45 @@ int main(int argc, char **argv)
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
+    // if (x == 1)
+    // {
+    //     ClothDepthDetector CDD;
+    
+    //     ros::Publisher motion_pub =
+    //         node_handle.advertise<std_msgs::Bool>("/enable_motion", 1, true);
+    
+    //     ros::Subscriber done_sub =
+    //         node_handle.subscribe("/motion_done", 1, doneCallback);
+    
+    //     ros::Duration(1.0).sleep();
+
+    //     std_msgs::Bool msg;
+    //     msg.data = true;
+    //     motion_pub.publish(msg);
+
+    //     ROS_INFO("Published: enable_motion = true");
+
+    //     ros::Rate rate(10);
+
+    //     ROS_INFO("Waiting for motion to finish...");
+
+    //     while (ros::ok() && !headMoveDone)
+    //     {
+    //         ros::spinOnce();
+    //         rate.sleep();
+    //     }
+
+    //     ROS_INFO("Motion finished -> exiting");
+    // }
     if (x == 1)
     {
-        ClothDepthDetector CDD;
+        success = H.jointsMove(headJointsDown, headDuration);
+        std::cout << "success: " << success << std::endl;
     
-        ros::Publisher motion_pub =
-            node_handle.advertise<std_msgs::Bool>("/enable_motion", 1, true);
-    
-        ros::Subscriber done_sub =
-            node_handle.subscribe("/motion_done", 1, doneCallback);
-    
-        ros::Duration(1.0).sleep();
-
-        std_msgs::Bool msg;
-        msg.data = true;
-        motion_pub.publish(msg);
-
-        ROS_INFO("Published: enable_motion = true");
-
-        ros::Rate rate(10);
-
-        ROS_INFO("Waiting for motion to finish...");
-
-        while (ros::ok() && !headMoveDone)
+        if (!success)
         {
-            ros::spinOnce();
-            rate.sleep();
+            return 0;
         }
-
-        ROS_INFO("Motion finished -> exiting");
     }
     else if (x != 2)
     {
@@ -492,32 +502,32 @@ int main(int argc, char **argv)
             return 0;
         }
 
-        std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
-        std::cin >> x;
+        // std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
+        // std::cin >> x;
 
-        if (x == 1)
-        {
-            if (firstRight)
-            {
-                std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, minPoint[0], minPoint[1] + 0.1, minPoint[2]};
-                success = A.absoluteMoveL(poseL);
-            }
-            else
-            {
-                std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, minPoint[0], minPoint[1] - 0.1, minPoint[2]};
-                success = A.absoluteMoveR(poseR);
-            }
-            std::cout << "success: " << success << std::endl;
+        // if (x == 1)
+        // {
+        //     if (firstRight)
+        //     {
+        //         std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, minPoint[0], minPoint[1] + 0.1, minPoint[2]};
+        //         success = A.absoluteMoveL(poseL);
+        //     }
+        //     else
+        //     {
+        //         std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, minPoint[0], minPoint[1] - 0.1, minPoint[2]};
+        //         success = A.absoluteMoveR(poseR);
+        //     }
+        //     std::cout << "success: " << success << std::endl;
         
-            if (!success)
-            {
-                return 0;
-            }
-        }
-        else if (x != 2)
-        {
-            return 0;
-        }
+        //     if (!success)
+        //     {
+        //         return 0;
+        //     }
+        // }
+        // else if (x != 2)
+        // {
+        //     return 0;
+        // }
         
         /* ******************** 16 ******************* */
         std::cout << std::endl;
@@ -584,13 +594,13 @@ int main(int argc, char **argv)
         if (firstRight)
         {
             // std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.5, 0.3, 0.4};
-            std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.5, 0.3, minPoint[2] + 0.2};
+            std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.5, 0.35, minPoint[2] + 0.2};
             success = A.absoluteMoveL(poseL);
         }
         else
         {
             // std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.5, -0.3, 0.4};
-            std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.5, -0.3, minPoint[2] + 0.2};
+            std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.5, -0.35, minPoint[2] + 0.2};
             success = A.absoluteMoveR(poseR);
         }
         std::cout << "success: " << success << std::endl;
@@ -638,12 +648,12 @@ int main(int argc, char **argv)
     {
         if (firstRight)
         {
-            std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.4, 0.5};
+            std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.4, 0.4};
             success = A.absoluteMoveR(poseR);
         }
         else
         {
-            std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.4, 0.5};
+            std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.4, 0.4};
             success = A.absoluteMoveL(poseL);
         }
         std::cout << "success: " << success << std::endl;
@@ -714,10 +724,31 @@ int main(int argc, char **argv)
     {
         return 0;
     }
-    
+
     /* ******************** 22 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 22 ~ CeDiRNet");
+    ROS_INFO("\nSTEP 22 ~ moving head down");
+    std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        success = H.jointsMove(headJointsDown_rs, headDuration);
+        std::cout << "success: " << success << std::endl;
+    
+        if (!success)
+        {
+            return 0;
+        }
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }
+    
+    /* ******************** 23 ******************* */
+    std::cout << std::endl;
+    ROS_INFO("\nSTEP 23 ~ CeDiRNet");
     // std::cout << "\t  Publish CeDiRNet point to /cedirnetPoint and press 1 to continue: ";
     std::cout << "\t  Press 1 to request CeDiRNet analysis or 2 to skip this command: ";
     std::cin >> x;
@@ -732,9 +763,9 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    /* ******************** 23 ******************* */
+    /* ******************** 24 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 23 ~ CeDiRNet");
+    ROS_INFO("\nSTEP 24 ~ CeDiRNet");
     std::cout << "\t  rostopic pub /cedirnet/goal_pose geometry_msgs/PoseStamped \"{pose: {position: {x: , y: , z: }, orientation: {x: , y: , z: , w: }}}\"\n";
     std::cout << "\t  Press 1 to listen on /cedirnet/goal_pose or 2 to skip this command: ";
     std::cin >> x;
@@ -749,9 +780,9 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    /* ******************** 24 ******************* */
+    /* ******************** 25 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 24 ~ moving %s arm", firstArm.c_str());
+    ROS_INFO("\nSTEP 25 ~ moving %s arm", firstArm.c_str());
     if (x == 1)
     {
         std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
@@ -786,9 +817,9 @@ int main(int argc, char **argv)
         }
     }
     
-    /* ******************** 25 ******************* */
+    /* ******************** 26 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 25 ~ closing %s gripper", firstArm.c_str());
+    ROS_INFO("\nSTEP 26 ~ closing %s gripper", firstArm.c_str());
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -809,9 +840,9 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /* ******************** 26 ******************* */
+    /* ******************** 27 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 26 ~ moving %s arm", secondArm.c_str());
+    ROS_INFO("\nSTEP 27 ~ moving %s arm", secondArm.c_str());
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -838,9 +869,9 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /* ******************** 27 ******************* */
+    /* ******************** 28 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 27 ~ moving %s arm", firstArm.c_str());
+    ROS_INFO("\nSTEP 28 ~ moving %s arm", firstArm.c_str());
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -867,9 +898,9 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    /* ******************** 28 ******************* */
+    /* ******************** 29 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 28 ~ moving both arms (by force)");
+    ROS_INFO("\nSTEP 29 ~ moving both arms (by force)");
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -882,9 +913,9 @@ int main(int argc, char **argv)
         return 0;
     }
     
-    /* ******************** 29 ******************* */
+    /* ******************** 30 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 29 ~ moving both hands down");
+    ROS_INFO("\nSTEP 30 ~ moving both hands down");
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -901,9 +932,9 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /* ******************** 30 ******************* */
+    /* ******************** 31 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 30 ~ moving both hands forward");
+    ROS_INFO("\nSTEP 31 ~ moving both hands forward");
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -917,9 +948,9 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /* ******************** 31 ******************* */
+    /* ******************** 32 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 31 ~ moving both hands up and backward");
+    ROS_INFO("\nSTEP 32 ~ moving both hands up and backward");
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -933,9 +964,9 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /* ******************** 32 ******************* */
+    /* ******************** 33 ******************* */
     std::cout << std::endl;
-    ROS_INFO("\nSTEP 32 ~ opening both grippers");
+    ROS_INFO("\nSTEP 33 ~ opening both grippers");
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
@@ -950,9 +981,9 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /* ******************** 33 ******************* */
+    /* ******************** 34 ******************* */
     // std::cout << std::endl;
-    // ROS_INFO("\nSTEP 33 ~ moving both arms to home pose");
+    // ROS_INFO("\nSTEP 34 ~ moving both arms to home pose");
     // std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     // std::cin >> x;
     
