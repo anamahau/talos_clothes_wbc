@@ -32,6 +32,10 @@ public:
     bool moveL(std::vector<double> pose);
     bool forceMove(const float maxForce);
     double computeForceNorm(const geometry_msgs::WrenchStamped& msg);
+    bool getPoseFromTF(
+        const std::string& target_frame,
+        const std::string& source_frame,
+        geometry_msgs::PoseStamped& pose_out);
 
 private:
     ros::NodeHandle nh_;
@@ -47,10 +51,6 @@ private:
     bool received_left_ft_ = false;
     tf2_ros::Buffer tf_buffer_;
     tf2_ros::TransformListener tf_listener_;
-    bool getPoseFromTF(
-        const std::string& target_frame,
-        const std::string& source_frame,
-        geometry_msgs::PoseStamped& pose_out);
 };
 
 #endif

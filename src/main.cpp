@@ -450,8 +450,48 @@ int main(int argc, char **argv)
     /* ******************** 15 ******************* */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 15 ~ moving %s arm", secondArm.c_str());
+    
     if (x == 1 && msgMin)
     {
+        std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
+        std::cin >> x;
+
+        if (x == 1)
+        {
+            if (firstRight)
+            {
+                geometry_msgs::PoseStamped current_pose;
+                A.getLeftGripperPose(current_pose);
+                geometry_msgs::Point position = current_pose.pose.position;
+                // geometry_msgs::Quaternion orientation = current_pose.pose.orientation;
+                // std::cout << "left gripper position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+                // std::cout << "left gripper orientation: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
+                std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, minPoint[0], position.y, position.z};
+                success = A.absoluteMoveL(poseL);
+            }
+            else
+            {
+                geometry_msgs::PoseStamped current_pose;
+                A.getRightGripperPose(current_pose);
+                geometry_msgs::Point position = current_pose.pose.position;
+                // geometry_msgs::Quaternion orientation = current_pose.pose.orientation;
+                // std::cout << "right gripper position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
+                // std::cout << "right gripper orientation: " << orientation.x << ", " << orientation.y << ", " << orientation.z << ", " << orientation.w << std::endl;
+                std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, minPoint[0], position.y, position.z};
+                success = A.absoluteMoveR(poseR);
+            }
+            std::cout << "success: " << success << std::endl;
+        
+            if (!success)
+            {
+                return 0;
+            }
+        }
+        else if (x != 2)
+        {
+            return 0;
+        }
+
         std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
         std::cin >> x;
 
