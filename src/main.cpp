@@ -59,21 +59,6 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    /* ******************** 29 ******************* */
-    std::cout << std::endl;
-    ROS_INFO("\nSTEP 29 ~ moving both arms (by force)");
-    std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
-    std::cin >> x;
-
-    if (x == 1)
-    {
-        A.forceMove(15);
-    }
-    else if (x != 2)
-    {
-        return 0;
-    }
-
     /* ******************** 2 ******************** */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 2 ~ moving head down");
