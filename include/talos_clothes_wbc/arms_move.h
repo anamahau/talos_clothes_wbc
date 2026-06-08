@@ -19,6 +19,8 @@ public:
     bool absoluteMoveR(std::vector<double> pose, bool wait = false);
     bool absoluteMoveL(std::vector<double> pose, bool wait = false);
     bool absoluteMoveBoth(std::vector<double> poseR, std::vector<double> poseL);
+    bool relativeMoveR_force(const std::vector<double>& quaternion, const std::vector<double>& deltaPosition);
+    bool relativeMoveL_force(const std::vector<double>& quaternion, const std::vector<double>& deltaPosition);
     std::vector<double> getJointValuesR();
     std::vector<double> getJointValuesL();
     geometry_msgs::WrenchStamped getRightFT();

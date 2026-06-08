@@ -101,8 +101,8 @@ bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait)
         double ty = pose[5];
         double tz = pose[6];
 
-        double tolerance = 0.05; // meters
-        double timeout = 30.0;   // seconds
+        double tolerance = 0.1; // meters
+        double timeout = 50.0;   // seconds
 
         ros::Time start = ros::Time::now();
         ros::Rate rate(50); // 50 Hz
@@ -169,8 +169,8 @@ bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
         double ty = pose[5];
         double tz = pose[6];
     
-        double tolerance = 0.05; // meters
-        double timeout = 30.0;   // seconds
+        double tolerance = 0.1; // meters
+        double timeout = 40.0;   // seconds
     
         ros::Time start = ros::Time::now();
         ros::Rate rate(50); // 50 Hz
@@ -196,9 +196,17 @@ bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
             if (error < tolerance)
             {
                 ROS_INFO("Target reached!");
-                // std::cout << "\t target position: " << tx << ", " << ty << ", " << tz << std::endl;
-                // std::cout << "\t current position: " << current_pose.pose.position.x << ", " << current_pose.pose.position.y << ", " << current_pose.pose.position.z << std::endl;
-                // std::cout << "\t error: " << dx << ", " << dy << ", " << dz << " -> " << error << std::endl;
+                std::cout << "\t target position: " << tx << ", " << ty << ", " << tz << std::endl;
+                std::cout << "\t current position: " << current_pose.pose.position.x << ", " << current_pose.pose.position.y << ", " << current_pose.pose.position.z << std::endl;
+                std::cout << "\t position error: " << dx << ", " << dy << ", " << dz << " -> " << error << std::endl;
+                double dqx = current_pose.pose.orientation.x - pose[0];
+                double dqy = current_pose.pose.orientation.y - pose[1];
+                double dqz = current_pose.pose.orientation.z - pose[2];
+                double dqw = current_pose.pose.orientation.w - pose[3];
+                std::cout << "\t target orientation: " << pose[0] << ", " << pose[1] << ", " << pose[2] << ", " << pose[3] << std::endl;
+                std::cout << "\t current orientation: " << current_pose.pose.orientation.x << ", " << current_pose.pose.orientation.y << ", " << current_pose.pose.orientation.z << ", " << current_pose.pose.orientation.w << std::endl;
+                std::cout << "\t orientation error: " << dqx << ", " << dqy << ", " << dqz << ", " << dqw << " -> " << std::sqrt(dqx*dqx + dqy*dqy + dqz*dqz + dqw*dqw) << std::endl;
+                std::cout << "\t time spent: " << (ros::Time::now() - start).toSec() << "s" << std::endl;
                 return true;
             }
     
@@ -396,15 +404,15 @@ bool armsMove::relativeMoveR(const std::vector<double>& delta)
 
     geometry_msgs::PoseStamped target = current_pose;
 
-    std::cout << "orientation: " << target.pose.orientation.x << ", " << target.pose.orientation.y << ", " << target.pose.orientation.z << ", " << target.pose.orientation.w << std::endl;
-    std::cout << "start pose: " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
+    // std::cout << "orientation: " << target.pose.orientation.x << ", " << target.pose.orientation.y << ", " << target.pose.orientation.z << ", " << target.pose.orientation.w << std::endl;
+    // std::cout << "start pose: " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
 
     // ---- position update ----
     target.pose.position.x += delta[3];
     target.pose.position.y += delta[4];
     target.pose.position.z += delta[5];
 
-    std::cout << "target pose: " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
+    // std::cout << "target pose: " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
 
     // ---- orientation update using exponential map ----
     tf2::Quaternion q_current, q_delta, q_new;
@@ -512,6 +520,60 @@ bool armsMove::relativeMoveBoth(const std::vector<double>& deltaR,
     return successR && successL;
 }
 
+bool armsMove::relativeMoveR_force(const std::vector<double>& quaternion, const std::vector<double>& deltaPosition)
+{
+    geometry_msgs::PoseStamped current_pose;
+
+    if (!getRightGripperPose(current_pose))
+    {
+        ROS_ERROR("Cannot get current right gripper pose");
+        return false;
+    }
+
+    geometry_msgs::PoseStamped target = current_pose;
+
+    target.pose.position.x += deltaPosition[0];
+    target.pose.position.y += deltaPosition[1];
+    target.pose.position.z += deltaPosition[2];
+
+    return absoluteMoveR({
+        quaternion[0],
+        quaternion[1],
+        quaternion[2],
+        quaternion[3],
+        target.pose.position.x,
+        target.pose.position.y,
+        target.pose.position.z
+    });
+}
+
+bool armsMove::relativeMoveL_force(const std::vector<double>& quaternion, const std::vector<double>& deltaPosition)
+{
+    geometry_msgs::PoseStamped current_pose;
+
+    if (!getLeftGripperPose(current_pose))
+    {
+        ROS_ERROR("Cannot get current left gripper pose");
+        return false;
+    }
+
+    geometry_msgs::PoseStamped target = current_pose;
+
+    target.pose.position.x += deltaPosition[0];
+    target.pose.position.y += deltaPosition[1];
+    target.pose.position.z += deltaPosition[2];
+
+    return absoluteMoveL({
+        quaternion[0],
+        quaternion[1],
+        quaternion[2],
+        quaternion[3],
+        target.pose.position.x,
+        target.pose.position.y,
+        target.pose.position.z
+    });
+}
+
 double armsMove::computeForceNorm(const geometry_msgs::WrenchStamped& msg)
 {
     const auto& f = msg.wrench.force;
@@ -522,7 +584,11 @@ bool armsMove::forceMove(const float maxForce)
 {
     ros::Rate rate(50);
     ros::Time start = ros::Time::now();
-    double timeout = 5.0;
+    double timeout = 20.0;
+
+    double forceR = false;
+    double forceL = false;
+    bool right_done, left_done;
 
     while (ros::ok())
     {
@@ -535,11 +601,43 @@ bool armsMove::forceMove(const float maxForce)
             continue;
         }
 
-        double forceR = computeForceNorm(right_ft_msg_);
-        double forceL = computeForceNorm(left_ft_msg_);
+        forceR = computeForceNorm(right_ft_msg_);
+        forceL = computeForceNorm(left_ft_msg_);
 
-        bool right_done = forceR >= maxForce;
-        bool left_done  = forceL >= maxForce;
+        if (!right_done)
+        {
+            right_done = forceR >= maxForce;
+        }
+        if (!left_done)
+        {
+            left_done  = forceL >= maxForce;
+        }
+        
+        // ---- TIMEOUT SAFETY ----
+        if ((ros::Time::now() - start).toSec() > timeout)
+        {
+            ROS_WARN("ForceMove timeout reached");
+            return false;
+        }
+        
+        // ---- CONTROL ACTION ----
+        if (!right_done)
+        {
+            relativeMoveR_force({0.5, 0.5, -0.5, 0.5}, {0.0, -0.05, 0.0});
+        }
+        else
+        {
+            std::cout << "Right force reached!" << std::endl;
+        }
+        
+        if (!left_done)
+        {
+            relativeMoveL_force({0.5, 0.5, 0.5, -0.5}, {0.0, 0.05, 0.0});
+        }
+        else
+        {
+            std::cout << "Left force reached!" << std::endl;
+        }
 
         // ---- STOP CONDITION ----
         if (right_done && left_done)
@@ -547,25 +645,7 @@ bool armsMove::forceMove(const float maxForce)
             ROS_INFO("Force threshold reached for both arms");
             return true;
         }
-
-        // ---- TIMEOUT SAFETY ----
-        if ((ros::Time::now() - start).toSec() > timeout)
-        {
-            ROS_WARN("ForceMove timeout reached");
-            return false;
-        }
-
-        // ---- CONTROL ACTION ----
-        if (!right_done)
-        {
-            relativeMoveR({0.0, 0.0, 0.0, -0.05, 0.0, 0.0});
-        }
-
-        if (!left_done)
-        {
-            relativeMoveL({0.0, 0.0, 0.0, 0.05, 0.0, 0.0});
-        }
-
+        
         rate.sleep();
     }
 
