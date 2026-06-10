@@ -378,12 +378,14 @@ bool armsMove::getPoseFromTF(
 
 bool armsMove::getRightGripperPose(geometry_msgs::PoseStamped& pose_out)
 {
-    return getPoseFromTF("base_link", "gripper_right_base_link", pose_out);
+    // return getPoseFromTF("base_link", "gripper_right_base_link", pose_out);
+    return getPoseFromTF("odom", "gripper_right_base_link", pose_out);
 }
 
 bool armsMove::getLeftGripperPose(geometry_msgs::PoseStamped& pose_out)
 {
-    return getPoseFromTF("base_link", "gripper_left_base_link", pose_out);
+    // return getPoseFromTF("base_link", "gripper_left_base_link", pose_out);
+    return getPoseFromTF("odom", "gripper_left_base_link", pose_out);
 }
 
 bool armsMove::relativeMoveR(const std::vector<double>& delta)
@@ -405,14 +407,14 @@ bool armsMove::relativeMoveR(const std::vector<double>& delta)
     geometry_msgs::PoseStamped target = current_pose;
 
     // std::cout << "orientation: " << target.pose.orientation.x << ", " << target.pose.orientation.y << ", " << target.pose.orientation.z << ", " << target.pose.orientation.w << std::endl;
-    // std::cout << "start pose: " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
+    std::cout << "start pose (R):  " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
 
     // ---- position update ----
     target.pose.position.x += delta[3];
     target.pose.position.y += delta[4];
     target.pose.position.z += delta[5];
 
-    // std::cout << "target pose: " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
+    std::cout << "target pose (R): " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
 
     // ---- orientation update using exponential map ----
     tf2::Quaternion q_current, q_delta, q_new;
@@ -466,10 +468,14 @@ bool armsMove::relativeMoveL(const std::vector<double>& delta)
 
     geometry_msgs::PoseStamped target = current_pose;
 
+    std::cout << "start pose (L):  " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
+
     // ---- position update ----
     target.pose.position.x += delta[3];
     target.pose.position.y += delta[4];
     target.pose.position.z += delta[5];
+
+    std::cout << "target pose (L): " << target.pose.position.x << ", " << target.pose.position.y << ", " << target.pose.position.z << std::endl;
 
     // ---- orientation update using exponential map ----
     tf2::Quaternion q_current, q_delta, q_new;
@@ -623,7 +629,8 @@ bool armsMove::forceMove(const float maxForce)
         // ---- CONTROL ACTION ----
         if (!right_done)
         {
-            relativeMoveR_force({0.5, 0.5, -0.5, 0.5}, {0.0, -0.05, 0.0});
+            // relativeMoveR_force({0.5, 0.5, -0.5, 0.5}, {0.0, -0.05, 0.0});
+            relativeMoveR({0.0, 0.0, 0.0, 0.0, -0.5, 0.0});
         }
         else
         {
@@ -632,7 +639,8 @@ bool armsMove::forceMove(const float maxForce)
         
         if (!left_done)
         {
-            relativeMoveL_force({0.5, 0.5, 0.5, -0.5}, {0.0, 0.05, 0.0});
+            // relativeMoveL_force({0.5, 0.5, 0.5, -0.5}, {0.0, 0.05, 0.0});
+            relativeMoveL({0.0, 0.0, 0.0, 0.0, 0.5, 0.0});
         }
         else
         {

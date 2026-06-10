@@ -906,7 +906,7 @@ int main(int argc, char **argv)
 
     if (x == 1)
     {
-        A.forceMove(15);
+        A.forceMove(20);
     }
     else if (x != 2)
     {
@@ -923,7 +923,8 @@ int main(int argc, char **argv)
 
     if (x == 1)
     {
-        relativeHeight = (0.6 - tableHeight) - 0.1;
+        relativeHeight = (0.3 - tableHeight) - 0.15;
+        std::cout << "relative move on z: " << relativeHeight << std::endl;
         std::vector<double> relativePose = {0.0, 0.0, 0.0, 0.0, 0.0, -relativeHeight};
         success = A.relativeMoveBoth(relativePose, relativePose);
     }
