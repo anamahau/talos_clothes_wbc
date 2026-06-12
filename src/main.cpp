@@ -755,8 +755,9 @@ int main(int argc, char **argv)
 
     if (x == 1)
     {
-        msgBool.data = true;
-        data_recorder_trigger_pub.publish(msgBool);
+        // msgBool.data = true;
+        // data_recorder_trigger_pub.publish(msgBool);
+        H.cedirnetMove(headDuration);
     }
     else if (x != 2)
     {

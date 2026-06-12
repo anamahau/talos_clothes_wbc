@@ -1,6 +1,3 @@
-#include <iostream>
-#include <typeinfo>
-
 #include <talos_clothes_wbc/head_move.h>
 
 
@@ -10,6 +7,25 @@ headMove::headMove(ros::NodeHandle& nh)
         nh.advertise<sensor_msgs::JointState>(
             "/whole_body_kinematic_controller/reference_ref", 1
             // "/whole_body_kinematic_controller/head_joints/reference_ref", 1
+        );
+    data_recorder_trigger_pub_ =
+        nh.advertise<std_msgs::Bool>(
+            "/data_recorder/trigger", 1, false
+        );
+
+    create_common_json_pub_ =
+        nh.advertise<std_msgs::Bool>(
+            "/cedirnet/new_json", 1, false
+        )
+    
+    cedirnet_finished_sub_ =
+        nh.subscribe(
+            "/cedirnet/finished", 1, &headMove::cedirnetFinishedCallback, this
+        );
+
+    joints_states_sub_ =
+        nh.subscribe(
+            "/joint_states", 1, &headMove::jointsStatesCallback, this
         );
 }
 
@@ -28,7 +44,73 @@ bool headMove::jointsMove(std::vector<double> joints, float duration)
         
     head_pub_.publish(traj);
     
-    ros::Duration(duration).sleep();
+    // ros::Duration(duration).sleep();
+
+    ros::Rate rate(30);
+
+    const double tol = 0.01;
     
-    return true;
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        double e1 = std::abs(jointValues_[0] - joints[0]);
+        double e2 = std::abs(jointValues_[1] - joints[1]);
+        if (e1 < tol && e2 < tol)
+        {
+            return true;
+        }
+        rate.sleep();
+    }
+    
+    return false;
+}
+
+void headMove::cedirnetFinishedCallback(const std_msgs::Bool::ConstPtr& msg)
+{
+    cedirnetFinished_ = msg->data;
+}
+
+void headMove::jointsStatesCallback(const sensor_msgs::JointState::ConstPtr& msg)
+{
+    jointValues_[0] = msg->position[16];
+    jointValues_[1] = msg->position[17];
+}
+
+void headMove::cedirnetMove(float duration)
+{
+    std::vector<std::vector<double>> headPosiions = {{0.1, 0.0},
+                                                     {0.4, 0.0},
+                                                     {0.7, 0.0}};
+
+    std_msgs::Bool msgBool;
+
+    size_t i = 0;
+
+    for (const auto& joints : headPosiions)
+    {
+        cedirnetFinished_ = false;
+        
+        jointsMove(joints, duration);
+
+        ROS_INFO("Move done, starting data recording...");
+        
+        msgBool.data = true;
+        data_recorder_trigger_pub_.publish(msgBool);
+        if (i == 0)
+        {
+            create_common_json_pub_.publish(msgBool);
+        }
+        ++i;
+
+        ros::Rate rate(10);
+
+        while (ros::ok() && !cedirnetFinished_)
+        {
+            ros::spinOnce();
+            rate.sleep();
+        }
+    }
+
+    headMove::jointsMove({0.0, 0.0}, duration);
+
 }
