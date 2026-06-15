@@ -16,7 +16,7 @@ headMove::headMove(ros::NodeHandle& nh)
     create_common_json_pub_ =
         nh.advertise<std_msgs::Bool>(
             "/cedirnet/new_json", 1, false
-        )
+        );
     
     cedirnet_finished_sub_ =
         nh.subscribe(
