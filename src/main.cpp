@@ -917,15 +917,16 @@ int main(int argc, char **argv)
     /* ******************** 30 ******************* */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 30 ~ moving both hands down");
+    
+    float relativeHeight;
+    relativeHeight = (0.3 - tableHeight) - 0.20;
+    std::cout << "relative move on z: " << relativeHeight << std::endl;
+    
     std::cout << "\t  Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
 
-    float relativeHeight;
-
     if (x == 1)
     {
-        relativeHeight = (0.3 - tableHeight) - 0.15;
-        std::cout << "relative move on z: " << relativeHeight << std::endl;
         std::vector<double> relativePose = {0.0, 0.0, 0.0, 0.0, 0.0, -relativeHeight};
         success = A.relativeMoveBoth(relativePose, relativePose);
     }
