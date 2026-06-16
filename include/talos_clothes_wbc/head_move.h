@@ -5,6 +5,7 @@
 #include <typeinfo>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Int32.h>
 #include <sensor_msgs/JointState.h>
 
 class headMove

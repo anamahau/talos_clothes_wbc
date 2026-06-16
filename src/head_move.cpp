@@ -8,14 +8,10 @@ headMove::headMove(ros::NodeHandle& nh)
             "/whole_body_kinematic_controller/reference_ref", 1
             // "/whole_body_kinematic_controller/head_joints/reference_ref", 1
         );
-    data_recorder_trigger_pub_ =
-        nh.advertise<std_msgs::Bool>(
-            "/data_recorder/trigger", 1, false
-        );
 
-    create_common_json_pub_ =
-        nh.advertise<std_msgs::Bool>(
-            "/cedirnet/new_json", 1, false
+    data_recorder_trigger_pub_ =
+        nh.advertise<std_msgs::Int32>(
+            "/data_recorder/trigger", 1, false
         );
     
     cedirnet_finished_sub_ =
@@ -82,9 +78,9 @@ void headMove::cedirnetMove(float duration)
                                                      {0.4, 0.0},
                                                      {0.7, 0.0}};
 
-    std_msgs::Bool msgBool;
+    std_msgs::Int32 msgInt;
 
-    size_t i = 0;
+    size_t i = 1;
 
     for (const auto& joints : headPosiions)
     {
@@ -94,12 +90,8 @@ void headMove::cedirnetMove(float duration)
 
         ROS_INFO("Move done, starting data recording...");
         
-        msgBool.data = true;
-        data_recorder_trigger_pub_.publish(msgBool);
-        if (i == 0)
-        {
-            create_common_json_pub_.publish(msgBool);
-        }
+        msgInt.data = i;
+        data_recorder_trigger_pub_.publish(msgInt);
         ++i;
 
         ros::Rate rate(10);
