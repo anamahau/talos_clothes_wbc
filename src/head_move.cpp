@@ -11,7 +11,7 @@ headMove::headMove(ros::NodeHandle& nh)
 
     data_recorder_trigger_pub_ =
         nh.advertise<std_msgs::Int32>(
-            "/data_recorder/trigger", 1, false
+            "/data_recorder/trigger2", 1, false
         );
     
     cedirnet_finished_sub_ =
@@ -74,8 +74,8 @@ void headMove::jointsStatesCallback(const sensor_msgs::JointState::ConstPtr& msg
 
 void headMove::cedirnetMove(float duration)
 {
-    std::vector<std::vector<double>> headPosiions = {{0.1, 0.0},
-                                                     {0.4, 0.0},
+    std::vector<std::vector<double>> headPosiions = {{0.3, 0.0},
+                                                     {0.5, 0.0},
                                                      {0.7, 0.0}};
 
     std_msgs::Int32 msgInt;
