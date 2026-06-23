@@ -38,6 +38,7 @@ public:
         const std::string& target_frame,
         const std::string& source_frame,
         geometry_msgs::PoseStamped& pose_out);
+    double waitTimeout = 80.0;
 
 private:
     ros::NodeHandle nh_;

@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     ros::Publisher data_recorder_trigger_pub = node_handle.advertise<std_msgs::Bool>("/data_recorder/trigger", 1, false);
 
     /* ******************************************* */
-    std::cout << "\nPress 1 to move arms to home psoe: ";
+    std::cout << "\nPress 1 to move arms to home pose: ";
     std::cin >> x;
     if (x != 1)
     {

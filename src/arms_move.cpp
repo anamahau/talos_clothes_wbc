@@ -102,7 +102,6 @@ bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait)
         double tz = pose[6];
 
         double tolerance = 0.1; // meters
-        double timeout = 50.0;   // seconds
 
         ros::Time start = ros::Time::now();
         ros::Rate rate(50); // 50 Hz
@@ -134,7 +133,7 @@ bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait)
                 return true;
             }
 
-            if ((ros::Time::now() - start).toSec() > timeout)
+            if ((ros::Time::now() - start).toSec() > waitTimeout)
             {
                 ROS_WARN("Timeout: target not reached");
                 std::cout << "\t target position: " << tx << ", " << ty << ", " << tz << std::endl;
@@ -170,7 +169,6 @@ bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
         double tz = pose[6];
     
         double tolerance = 0.1; // meters
-        double timeout = 40.0;   // seconds
     
         ros::Time start = ros::Time::now();
         ros::Rate rate(50); // 50 Hz
@@ -210,7 +208,7 @@ bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
                 return true;
             }
     
-            if ((ros::Time::now() - start).toSec() > timeout)
+            if ((ros::Time::now() - start).toSec() > waitTimeout)
             {
                 ROS_WARN("Timeout: target not reached");
                 std::cout << "\t target position: " << tx << ", " << ty << ", " << tz << std::endl;
@@ -245,7 +243,6 @@ bool armsMove::absoluteMoveBoth(std::vector<double> poseR, std::vector<double> p
     double tx_l = poseL[4], ty_l = poseL[5], tz_l = poseL[6];
 
     double tolerance = 0.05; // meters
-    double timeout = 30.0;   // seconds
 
     ros::Time start = ros::Time::now();
     ros::Rate rate(50);
@@ -295,7 +292,7 @@ bool armsMove::absoluteMoveBoth(std::vector<double> poseR, std::vector<double> p
         }
 
         // ---- TIMEOUT ----
-        if ((ros::Time::now() - start).toSec() > timeout)
+        if ((ros::Time::now() - start).toSec() > waitTimeout)
         {
             ROS_WARN("Timeout: targets not reached");
 
