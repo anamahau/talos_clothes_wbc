@@ -27,9 +27,9 @@ public:
     geometry_msgs::WrenchStamped getLeftFT();
     bool getRightGripperPose(geometry_msgs::PoseStamped& pose_out);
     bool getLeftGripperPose(geometry_msgs::PoseStamped& pose_out);
-    bool relativeMoveR(const std::vector<double>& delta);
-    bool relativeMoveL(const std::vector<double>& delta);
-    bool relativeMoveBoth(const std::vector<double>& delatR, const std::vector<double>& deltaL);
+    bool relativeMoveR(const std::vector<double>& delta, bool wait = false);
+    bool relativeMoveL(const std::vector<double>& delta, bool wait = false);
+    bool relativeMoveBoth(const std::vector<double>& delatR, const std::vector<double>& deltaL, bool wait = false);
     bool moveR(std::vector<double> pose);
     bool moveL(std::vector<double> pose);
     bool forceMove(const float maxForce);

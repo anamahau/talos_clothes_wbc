@@ -229,5 +229,8 @@ target_link_libraries(arms_move_test talos_clothes_wbc_lib ${catkin_LIBRARIES})
 add_executable(main src/main.cpp)
 target_link_libraries(main ${catkin_LIBRARIES} talos_clothes_wbc_lib)
 
+add_executable(main2 src/main2.cpp)
+target_link_libraries(main2 ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
 add_executable(armLoop src/armLoop.cpp)
 target_link_libraries(armLoop ${catkin_LIBRARIES} talos_clothes_wbc_lib)

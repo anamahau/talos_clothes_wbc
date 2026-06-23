@@ -388,7 +388,7 @@ bool armsMove::getLeftGripperPose(geometry_msgs::PoseStamped& pose_out)
     return getPoseFromTF("odom", "gripper_left_base_link", pose_out);
 }
 
-bool armsMove::relativeMoveR(const std::vector<double>& delta)
+bool armsMove::relativeMoveR(const std::vector<double>& delta, bool wait)
 {
     if (delta.size() != 6)
     {
@@ -439,18 +439,20 @@ bool armsMove::relativeMoveR(const std::vector<double>& delta)
 
     target.pose.orientation = tf2::toMsg(q_new);
 
-    return absoluteMoveR({
-        target.pose.orientation.x,
-        target.pose.orientation.y,
-        target.pose.orientation.z,
-        target.pose.orientation.w,
-        target.pose.position.x,
-        target.pose.position.y,
-        target.pose.position.z
-    });
+    return absoluteMoveR(
+        {
+            target.pose.orientation.x,
+            target.pose.orientation.y,
+            target.pose.orientation.z,
+            target.pose.orientation.w,
+            target.pose.position.x,
+            target.pose.position.y,
+            target.pose.position.z
+        }, wait
+    );
 }
 
-bool armsMove::relativeMoveL(const std::vector<double>& delta)
+bool armsMove::relativeMoveL(const std::vector<double>& delta, bool wait)
 {
     if (delta.size() != 6)
     {
@@ -500,19 +502,22 @@ bool armsMove::relativeMoveL(const std::vector<double>& delta)
 
     target.pose.orientation = tf2::toMsg(q_new);
 
-    return absoluteMoveL({
-        target.pose.orientation.x,
-        target.pose.orientation.y,
-        target.pose.orientation.z,
-        target.pose.orientation.w,
-        target.pose.position.x,
-        target.pose.position.y,
-        target.pose.position.z
-    });
+    return absoluteMoveL(
+        {
+            target.pose.orientation.x,
+            target.pose.orientation.y,
+            target.pose.orientation.z,
+            target.pose.orientation.w,
+            target.pose.position.x,
+            target.pose.position.y,
+            target.pose.position.z
+        }, wait
+    );
 }
 
 bool armsMove::relativeMoveBoth(const std::vector<double>& deltaR,
-                                const std::vector<double>& deltaL)
+                                const std::vector<double>& deltaL,
+                                bool wait)
 {
     if (deltaR.size() != 6 || deltaL.size() != 6)
     {
@@ -520,8 +525,8 @@ bool armsMove::relativeMoveBoth(const std::vector<double>& deltaR,
         return false;
     }
 
-    bool successR = relativeMoveR(deltaR);
-    bool successL = relativeMoveL(deltaL);
+    bool successR = relativeMoveR(deltaR, false);
+    bool successL = relativeMoveL(deltaL, wait);
 
     return successR && successL;
 }
