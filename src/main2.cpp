@@ -389,6 +389,25 @@ int main(int argc, char **argv)
         G.closeGripper("R", 2);
     }
     ros::Duration(2.0).sleep();
+
+    // TODO: checkGrippingSuccess
+    bool gSuccess;
+    if (firstRight)
+    {
+        gSuccess = A.checkGrippingSuccess(15.0, "L");
+    }
+    else
+    {
+        gSuccess = A.checkGrippingSuccess(15.0, "R")
+    }
+    if (gSuccess)
+    {
+        std::cout << "cloth was successfully gripped\n";
+    }
+    else
+    {
+        std::cout << "cloth was not gripped\n";
+    }
     
     /* ******************** 18 ******************* */
     std::cout << std::endl;

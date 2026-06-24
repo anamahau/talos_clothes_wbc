@@ -332,12 +332,26 @@ void armsMove::rightFTcallback(const geometry_msgs::WrenchStamped::ConstPtr& msg
 {
     right_ft_msg_ = *msg;
     received_right_ft_ = true;
+
+    double f = computeForceNorm(*msg);
+    right_force_buffer_.push_back(f);
+    if (right_force_buffer_.size() > forceWindowSize)
+    {
+        right_force_buffer_.pop_front();
+    }
 }
 
 void armsMove::leftFTcallback(const geometry_msgs::WrenchStamped::ConstPtr& msg)
 {
     left_ft_msg_ = *msg;
     received_left_ft_ = true;
+
+    double f = computeForceNorm(*msg);
+    left_force_buffer_.push_back(f);
+    if (left_force_buffer_.size() > forceWindowSize)
+    {
+        left_force_buffer_.pop_front();
+    }
 }
 
 bool armsMove::getPoseFromTF(
@@ -660,4 +674,39 @@ bool armsMove::forceMove(const float maxForce)
     }
 
     return false;
+}
+
+bool armsMove::checkGrippingSuccess(double threshold, const std::string& LorR)
+{
+    std::vector<double>* buffer = nullptr;
+
+    if (LorR == "R")
+    {
+        if (!received_right_ft_ || right_force_buffer_.size() < forceWindowSize)
+        {
+            return false;
+        }
+        buffer = &right_force_buffer_;
+    }
+    else if (LorR == "L")
+    {
+        if (!received_left_ft_ || left_force_buffer_.size() < forceWindowSize)
+        {
+            return false;
+        }
+        buffer = &left_force_buffer_;
+    }
+    else
+    {
+        return false;
+    }
+
+    double sum = 0.0;
+    for (double f : *buffer)
+    {
+        sum += f;
+    }
+    double avg = sum / forceWindowSize;
+
+    return avg > threshold;
 }
