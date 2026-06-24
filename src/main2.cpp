@@ -398,7 +398,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        gSuccess = A.checkGrippingSuccess(15.0, "R")
+        gSuccess = A.checkGrippingSuccess(15.0, "R");
     }
     if (gSuccess)
     {

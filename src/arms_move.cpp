@@ -678,7 +678,7 @@ bool armsMove::forceMove(const float maxForce)
 
 bool armsMove::checkGrippingSuccess(double threshold, const std::string& LorR)
 {
-    std::vector<double>* buffer = nullptr;
+    std::deque<double>* buffer = nullptr;
 
     if (LorR == "R")
     {

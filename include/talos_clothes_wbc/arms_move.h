@@ -39,9 +39,10 @@ public:
         const std::string& source_frame,
         geometry_msgs::PoseStamped& pose_out);
     double waitTimeout = 80.0;
-    std::vector<double> right_force_buffer_;
-    std::vector<double> left_force_buffer_;
+    std::deque<double> right_force_buffer_;
+    std::deque<double> left_force_buffer_;
     static constexpr int forceWindowSize = 10;
+    bool checkGrippingSuccess(double threshold, const std::string& LorR);
 
 private:
     ros::NodeHandle nh_;
