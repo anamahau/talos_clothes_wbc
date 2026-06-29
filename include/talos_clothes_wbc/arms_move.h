@@ -4,6 +4,7 @@
 #define ARMS_MOVE_H
 
 #include <vector>
+#include <numeric>
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/JointState.h>
@@ -16,9 +17,10 @@ class armsMove
 {
 public:
     explicit armsMove(ros::NodeHandle& nh);
-    bool absoluteMoveR(std::vector<double> pose, bool wait = false);
-    bool absoluteMoveL(std::vector<double> pose, bool wait = false);
-    bool absoluteMoveBoth(std::vector<double> poseR, std::vector<double> poseL);
+    static constexpr double positionToleranceForWait = 0.01;
+    bool absoluteMoveR(std::vector<double> pose, bool wait = false, double positionTolerance = positionToleranceForWait);
+    bool absoluteMoveL(std::vector<double> pose, bool wait = false, double positionTolerance = positionToleranceForWait);
+    bool absoluteMoveBoth(std::vector<double> poseR, std::vector<double> poseL, double positionTolerance = positionToleranceForWait);
     bool relativeMoveR_force(const std::vector<double>& quaternion, const std::vector<double>& deltaPosition);
     bool relativeMoveL_force(const std::vector<double>& quaternion, const std::vector<double>& deltaPosition);
     std::vector<double> getJointValuesR();
@@ -32,7 +34,8 @@ public:
     bool relativeMoveBoth(const std::vector<double>& delatR, const std::vector<double>& deltaL, bool wait = false);
     bool moveR(std::vector<double> pose);
     bool moveL(std::vector<double> pose);
-    bool forceMove(const float maxForce);
+    bool forceMove_old(const float maxForce);
+    bool forceMove(double maxForce);
     double computeForceNorm(const geometry_msgs::WrenchStamped& msg);
     bool getPoseFromTF(
         const std::string& target_frame,
@@ -43,6 +46,7 @@ public:
     std::deque<double> left_force_buffer_;
     static constexpr int forceWindowSize = 10;
     bool checkGrippingSuccess(double threshold, const std::string& LorR);
+    double averageForce(const std::deque<double>& buffer);
 
 private:
     ros::NodeHandle nh_;

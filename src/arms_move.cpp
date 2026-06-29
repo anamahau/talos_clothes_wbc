@@ -84,7 +84,7 @@ bool armsMove::moveL(std::vector<double> pose)
     return true;
 }
 
-bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait)
+bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait, double positionTolerance)
 {
     bool success = moveR(pose);
     if (!success)
@@ -100,8 +100,6 @@ bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait)
         double tx = pose[4];
         double ty = pose[5];
         double tz = pose[6];
-
-        double tolerance = 0.1; // meters
 
         ros::Time start = ros::Time::now();
         ros::Rate rate(50); // 50 Hz
@@ -124,7 +122,7 @@ bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait)
 
             double error = std::sqrt(dx*dx + dy*dy + dz*dz);
 
-            if (error < tolerance)
+            if (error < positionTolerance)
             {
                 ROS_INFO("Target reached!");
                 // std::cout << "\t target position: " << tx << ", " << ty << ", " << tz << std::endl;
@@ -151,7 +149,7 @@ bool armsMove::absoluteMoveR(std::vector<double> pose, bool wait)
     return true;
 }
 
-bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
+bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait, double positionTolerance)
 {
     bool success = moveL(pose);
     if (!success)
@@ -167,8 +165,6 @@ bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
         double tx = pose[4];
         double ty = pose[5];
         double tz = pose[6];
-    
-        double tolerance = 0.1; // meters
     
         ros::Time start = ros::Time::now();
         ros::Rate rate(50); // 50 Hz
@@ -191,7 +187,7 @@ bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
     
             double error = std::sqrt(dx*dx + dy*dy + dz*dz);
     
-            if (error < tolerance)
+            if (error < positionTolerance)
             {
                 ROS_INFO("Target reached!");
                 std::cout << "\t target position: " << tx << ", " << ty << ", " << tz << std::endl;
@@ -226,7 +222,7 @@ bool armsMove::absoluteMoveL(std::vector<double> pose, bool wait)
     return true;
 }
 
-bool armsMove::absoluteMoveBoth(std::vector<double> poseR, std::vector<double> poseL)
+bool armsMove::absoluteMoveBoth(std::vector<double> poseR, std::vector<double> poseL, double positionTolerance)
 {
     bool successR = moveR(poseR);
     bool successL = moveL(poseL);
@@ -241,8 +237,6 @@ bool armsMove::absoluteMoveBoth(std::vector<double> poseR, std::vector<double> p
     // targets
     double tx_r = poseR[4], ty_r = poseR[5], tz_r = poseR[6];
     double tx_l = poseL[4], ty_l = poseL[5], tz_l = poseL[6];
-
-    double tolerance = 0.05; // meters
 
     ros::Time start = ros::Time::now();
     ros::Rate rate(50);
@@ -274,7 +268,7 @@ bool armsMove::absoluteMoveBoth(std::vector<double> poseR, std::vector<double> p
         double err_l = std::sqrt(dx_l*dx_l + dy_l*dy_l + dz_l*dz_l);
 
         // ---- SUCCESS CONDITION ----
-        if (err_r < tolerance && err_l < tolerance)
+        if (err_r < positionTolerance && err_l < positionTolerance)
         {
             ROS_INFO("Both targets reached!");
 
@@ -602,7 +596,7 @@ double armsMove::computeForceNorm(const geometry_msgs::WrenchStamped& msg)
     return std::sqrt(f.x*f.x + f.y*f.y + f.z*f.z);
 }
 
-bool armsMove::forceMove(const float maxForce)
+bool armsMove::forceMove_old(const float maxForce)
 {
     ros::Rate rate(50);
     ros::Time start = ros::Time::now();
@@ -671,6 +665,114 @@ bool armsMove::forceMove(const float maxForce)
         }
         
         rate.sleep();
+    }
+
+    return false;
+}
+
+double armsMove::averageForce(const std::deque<double>& buffer)
+{
+    if (buffer.empty())
+        return 0.0;
+
+    return std::accumulate(buffer.begin(), buffer.end(), 0.0)
+           / static_cast<double>(buffer.size());
+}
+
+bool armsMove::forceMove(double maxForce)
+{
+    const double step = 0.01;
+    const double timeout = 10.0;
+
+    ros::Time start = ros::Time::now();
+
+    ros::spinOnce();
+
+    geometry_msgs::PoseStamped rightPose;
+    geometry_msgs::PoseStamped leftPose;
+
+    if (!getRightGripperPose(rightPose) || !getLeftGripperPose(leftPose))
+    {
+        ROS_ERROR("Cannot get initial gripper poses.");
+        return false;
+    }
+
+    bool rightDone = false;
+    bool leftDone = false;
+
+    while (ros::ok())
+    {
+        ros::spinOnce();
+
+        double forceR = averageForce(right_force_buffer_);
+        double forceL = averageForce(left_force_buffer_);
+
+        if (forceR >= maxForce)
+        {
+            rightDone = true;
+        }
+        if (forceL >= maxForce)
+        {
+            leftDone = true;
+        }
+        if (rightDone && leftDone)
+        {
+            ROS_INFO("Force threshold reached for both arms.");
+            return true;
+        }
+
+        std::vector<double> poseR = {
+            rightPose.pose.orientation.x,
+            rightPose.pose.orientation.y,
+            rightPose.pose.orientation.z,
+            rightPose.pose.orientation.w,
+            rightPose.pose.position.x,
+            rightPose.pose.position.y,
+            rightPose.pose.position.z
+        };
+
+        std::vector<double> poseL = {
+            leftPose.pose.orientation.x,
+            leftPose.pose.orientation.y,
+            leftPose.pose.orientation.z,
+            leftPose.pose.orientation.w,
+            leftPose.pose.position.x,
+            leftPose.pose.position.y,
+            leftPose.pose.position.z
+        };
+
+        if (!rightDone)
+        {
+            poseR[5] -= step;
+        }
+        if (!leftDone)
+        {
+            poseL[5] += step;
+        }
+
+        if (!absoluteMoveBoth(poseR, poseL, 0.002))
+        {
+            ROS_ERROR("absoluteMoveBoth failed");
+            return false;
+        }
+
+        ros::Duration(0.15).sleep();
+        ros::spinOnce();
+
+        if (!rightDone)
+        {
+            getRightGripperPose(rightPose);
+        }
+        if (!leftDone)
+        {
+            getLeftGripperPose(leftPose);
+        }
+
+        if ((ros::Time::now() - start).toSec() > timeout)
+        {
+            ROS_WARN("forceMove timeout reached");
+            return false;
+        }
     }
 
     return false;
