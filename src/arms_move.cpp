@@ -286,12 +286,23 @@ bool armsMove::absoluteMoveBoth(std::vector<double> poseR, std::vector<double> p
         }
 
         // ---- TIMEOUT ----
-        if ((ros::Time::now() - start).toSec() > waitTimeout)
+        double waitTimeout_tmp = 5.0;
+        if ((ros::Time::now() - start).toSec() > waitTimeout_tmp)
         {
             ROS_WARN("Timeout: targets not reached");
 
             std::cout << "\nRIGHT ARM ERROR: " << err_r << std::endl;
             std::cout << "LEFT ARM ERROR: " << err_l << std::endl;
+
+            std::cout << "\nRIGHT ARM:\n";
+            std::cout << "\t target: " << tx_r << ", " << ty_r << ", " << tz_r << std::endl;
+            std::cout << "\t current: " << pose_r.pose.position.x << ", " << pose_r.pose.position.y << ", " << pose_r.pose.position.z << std::endl;
+            std::cout << "\t error: " << err_r << std::endl;
+
+            std::cout << "\nLEFT ARM:\n";
+            std::cout << "\t target: " << tx_l << ", " << ty_l << ", " << tz_l << std::endl;
+            std::cout << "\t current: " << pose_l.pose.position.x << ", " << pose_l.pose.position.y << ", " << pose_l.pose.position.z << std::endl;
+            std::cout << "\t error: " << err_l << std::endl;
 
             return false;
         }
@@ -602,9 +613,14 @@ bool armsMove::forceMove_old(const float maxForce)
     ros::Time start = ros::Time::now();
     double timeout = 10.0;
 
-    double forceR = false;
-    double forceL = false;
-    bool right_done, left_done;
+    // double forceR = false;
+    // double forceL = false;
+    // bool right_done, left_done;
+
+    double forceR = 0.0;
+    double forceL = 0.0;
+    bool right_done = false;
+    bool left_done = false;
 
     while (ros::ok())
     {
@@ -620,13 +636,19 @@ bool armsMove::forceMove_old(const float maxForce)
         forceR = computeForceNorm(right_ft_msg_);
         forceL = computeForceNorm(left_ft_msg_);
 
-        if (!right_done)
+        /*if (!right_done)
         {
             right_done = forceR >= maxForce;
         }
         if (!left_done)
         {
             left_done  = forceL >= maxForce;
+        }*/
+
+        if (forceR >= maxForce || forceL >= maxForce)
+        {
+            ROS_INFO("Force threshold reached → STOP BOTH ARMS");
+            return true;
         }
         
         // ---- TIMEOUT SAFETY ----
@@ -640,21 +662,13 @@ bool armsMove::forceMove_old(const float maxForce)
         if (!right_done)
         {
             // relativeMoveR_force({0.5, 0.5, -0.5, 0.5}, {0.0, -0.05, 0.0});
-            relativeMoveR({0.0, 0.0, 0.0, 0.0, -0.5, 0.0});
-        }
-        else
-        {
-            std::cout << "Right force reached!" << std::endl;
+            relativeMoveR({0.0, 0.0, 0.0, 0.0, -0.05, 0.0});
         }
         
         if (!left_done)
         {
             // relativeMoveL_force({0.5, 0.5, 0.5, -0.5}, {0.0, 0.05, 0.0});
-            relativeMoveL({0.0, 0.0, 0.0, 0.0, 0.5, 0.0});
-        }
-        else
-        {
-            std::cout << "Left force reached!" << std::endl;
+            relativeMoveL({0.0, 0.0, 0.0, 0.0, 0.05, 0.0});
         }
 
         // ---- STOP CONDITION ----
@@ -679,21 +693,22 @@ double armsMove::averageForce(const std::deque<double>& buffer)
            / static_cast<double>(buffer.size());
 }
 
-bool armsMove::forceMove(double maxForce)
+/*bool armsMove::forceMove(double maxForce)
 {
     const double step = 0.01;
     const double timeout = 10.0;
+    const double motionTolerance = 0.01;
 
     ros::Time start = ros::Time::now();
-
-    ros::spinOnce();
+    ros::Rate rate(20);  // slower loop = more stable (important)
 
     geometry_msgs::PoseStamped rightPose;
     geometry_msgs::PoseStamped leftPose;
 
-    if (!getRightGripperPose(rightPose) || !getLeftGripperPose(leftPose))
+    if (!getRightGripperPose(rightPose) ||
+        !getLeftGripperPose(leftPose))
     {
-        ROS_ERROR("Cannot get initial gripper poses.");
+        ROS_ERROR("Cannot get initial poses.");
         return false;
     }
 
@@ -704,24 +719,57 @@ bool armsMove::forceMove(double maxForce)
     {
         ros::spinOnce();
 
-        double forceR = averageForce(right_force_buffer_);
-        double forceL = averageForce(left_force_buffer_);
+        // ---------------------------------------
+        // FORCE ESTIMATION (filtered)
+        // ---------------------------------------
+        double forceR = computeForceNorm(right_ft_msg_);
+        double forceL = computeForceNorm(left_ft_msg_);
 
-        if (forceR >= maxForce)
+        ROS_INFO_STREAM_THROTTLE(0.5,
+            "ForceR: " << forceR << "  ForceL: " << forceL);
+
+        if ((forceR >= maxForce) && !rightDone)
         {
+            ROS_INFO("RIGHT DONE");
             rightDone = true;
+            getRightGripperPose(rightPose);
         }
-        if (forceL >= maxForce)
+
+        if ((forceL >= maxForce) && !leftDone)
         {
+            ROS_INFO("LEFT DONE");
             leftDone = true;
+            getLeftGripperPose(leftPose);
         }
+
         if (rightDone && leftDone)
         {
-            ROS_INFO("Force threshold reached for both arms.");
+            ROS_INFO("Force threshold reached.");
             return true;
         }
 
-        std::vector<double> poseR = {
+        // ---------------------------------------
+        // BUILD NEXT STEP
+        // ---------------------------------------
+        if (!rightDone)
+        {
+            // rightPose.pose.position.y -= step;
+            rightPose.pose.position.z -= (step/2);
+            // std::cout << "right y: " << rightPose.pose.position.y << std::endl;
+        }
+
+        if (!leftDone)
+        {
+            // leftPose.pose.position.y += step;
+            leftPose.pose.position.z += (step/2);
+            // std::cout << "left y: " << leftPose.pose.position.y << std::endl;
+        }
+
+        // ---------------------------------------
+        // SEND COMMAND (NON-BLOCKING)
+        // ---------------------------------------
+        absoluteMoveBoth(
+        {
             rightPose.pose.orientation.x,
             rightPose.pose.orientation.y,
             rightPose.pose.orientation.z,
@@ -729,9 +777,8 @@ bool armsMove::forceMove(double maxForce)
             rightPose.pose.position.x,
             rightPose.pose.position.y,
             rightPose.pose.position.z
-        };
-
-        std::vector<double> poseL = {
+        },
+        {
             leftPose.pose.orientation.x,
             leftPose.pose.orientation.y,
             leftPose.pose.orientation.z,
@@ -739,38 +786,129 @@ bool armsMove::forceMove(double maxForce)
             leftPose.pose.position.x,
             leftPose.pose.position.y,
             leftPose.pose.position.z
-        };
+        });
+        std::cout << "right y: " << rightPose.pose.position.y << std::endl;
+        std::cout << "left y: " << leftPose.pose.position.y << std::endl;
 
+        // ---------------------------------------
+        // WAIT OUTSIDE CONTROLLER (IMPORTANT)
+        // ---------------------------------------
+        // ros::Duration(0.15).sleep();
+        ros::Duration(0.5).sleep();
+        ros::spinOnce();
+
+        // ---------------------------------------
+        // UPDATE POSES AFTER MOTION
+        // ---------------------------------------
         if (!rightDone)
-        {
-            poseR[5] -= step;
-        }
-        if (!leftDone)
-        {
-            poseL[5] += step;
-        }
+            getRightGripperPose(rightPose);
 
-        if (!absoluteMoveBoth(poseR, poseL, 0.002))
+        if (!leftDone)
+            getLeftGripperPose(leftPose);
+
+        // ---------------------------------------
+        // TIMEOUT
+        // ---------------------------------------
+        if ((ros::Time::now() - start).toSec() > timeout)
         {
-            ROS_ERROR("absoluteMoveBoth failed");
+            ROS_WARN("forceMove timeout.");
             return false;
         }
 
-        ros::Duration(0.15).sleep();
+        rate.sleep();
+    }
+
+    return false;
+}*/
+
+bool armsMove::forceMove(double maxForce)
+{
+    const double step = 0.002;      // 2 mm
+    const double timeout = 10.0;    // seconds
+    const double moveDelay = 0.2;   // wait after each command
+
+    ros::Rate rate(20);
+
+    geometry_msgs::PoseStamped rightTarget;
+    geometry_msgs::PoseStamped leftTarget;
+
+    if (!getRightGripperPose(rightTarget) ||
+        !getLeftGripperPose(leftTarget))
+    {
+        ROS_ERROR("Cannot get initial gripper poses.");
+        return false;
+    }
+
+    ros::Time start = ros::Time::now();
+
+    while (ros::ok())
+    {
         ros::spinOnce();
 
-        if (!rightDone)
+        if (!received_right_ft_ || !received_left_ft_)
         {
-            getRightGripperPose(rightPose);
-        }
-        if (!leftDone)
-        {
-            getLeftGripperPose(leftPose);
+            ROS_WARN_THROTTLE(1.0, "Waiting for FT measurements...");
+            ros::Duration(0.05).sleep();
+            continue;
         }
 
+        // Read current forces
+        double forceR = computeForceNorm(right_ft_msg_);
+        double forceL = computeForceNorm(left_ft_msg_);
+
+        ROS_INFO_STREAM_THROTTLE(0.5,
+            "ForceR = " << forceR
+            << "  ForceL = " << forceL);
+
+        // Stop if either arm reaches the threshold
+        if (forceR >= maxForce || forceL >= maxForce)
+        {
+            ROS_INFO("Force threshold reached.");
+            return true;
+        }
+
+        // Build next target
+        rightTarget.pose.position.y -= step;
+        leftTarget.pose.position.y  += step;
+
+        // Send both references
+        absoluteMoveBoth(
+            {
+                rightTarget.pose.orientation.x,
+                rightTarget.pose.orientation.y,
+                rightTarget.pose.orientation.z,
+                rightTarget.pose.orientation.w,
+                rightTarget.pose.position.x,
+                rightTarget.pose.position.y,
+                rightTarget.pose.position.z
+            },
+            {
+                leftTarget.pose.orientation.x,
+                leftTarget.pose.orientation.y,
+                leftTarget.pose.orientation.z,
+                leftTarget.pose.orientation.w,
+                leftTarget.pose.position.x,
+                leftTarget.pose.position.y,
+                leftTarget.pose.position.z
+            }
+        );
+
+        // Allow the controller to move
+        // ros::Duration(moveDelay).sleep();
+        // ros::spinOnce();
+
+        // Read actual poses for the next increment
+        /*if (!getRightGripperPose(rightPose) ||
+            !getLeftGripperPose(leftPose))
+        {
+            ROS_WARN("Failed to update gripper poses.");
+        }*/
+
+        // Timeout
+        rate.sleep();
         if ((ros::Time::now() - start).toSec() > timeout)
         {
-            ROS_WARN("forceMove timeout reached");
+            ROS_WARN("forceMove timeout.");
             return false;
         }
     }

@@ -17,7 +17,7 @@ class armsMove
 {
 public:
     explicit armsMove(ros::NodeHandle& nh);
-    static constexpr double positionToleranceForWait = 0.01;
+    static constexpr double positionToleranceForWait = 0.05;
     bool absoluteMoveR(std::vector<double> pose, bool wait = false, double positionTolerance = positionToleranceForWait);
     bool absoluteMoveL(std::vector<double> pose, bool wait = false, double positionTolerance = positionToleranceForWait);
     bool absoluteMoveBoth(std::vector<double> poseR, std::vector<double> poseL, double positionTolerance = positionToleranceForWait);

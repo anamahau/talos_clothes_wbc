@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
     int x;
 
-    std::cout << "Press 1 to move right arm: ";
+    /*std::cout << "Press 1 to move right arm: ";
     std::cin >> x;
 
     if (x == 1)
@@ -46,5 +46,70 @@ int main(int argc, char **argv)
         std::vector<double> jointsR = A.getJointValuesR();
         std::cout << "==== right arm joints: ";
         printVector(jointsR);
+    }*/
+
+    bool success;
+
+    ROS_INFO("\nMoving both arms");
+    std::cout << "Press 1 to execute command or 2 to skip this command: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.2, 0.6};
+        success = A.absoluteMoveR(poseR);
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.2, 0.6};
+        success = A.absoluteMoveL(poseL);
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }
+
+    /*ROS_INFO("\nMoving right arm");
+    std::cout << "Press 1 to execute command or 2 to skip this command: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        A.relativeMoveR({0.0, 0.0, 0.0, 0.0, -0.1, 0.0});
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }*/
+
+    /*ROS_INFO("\nMoving left arm");
+    std::cout << "Press 1 to execute command or 2 to skip this command: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        A.relativeMoveL({0.0, 0.0, 0.0, 0.0, 0.1, 0.0});
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }*/
+
+    std::cout << std::endl;
+    ROS_INFO("\nMoving both arms (by force)");
+    std::cout << "Press 1 to execute command or 2 to skip this command: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        A.forceMove_old(15);
+    }
+    else if (x != 2)
+    {
+        return 0;
     }
 }
+
+
+/*
+rostopic pub -r 100 /right_wrist_ft geometry_msgs/WrenchStamped "{header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: 'wrist_right_ft_link'}, wrench: {force: {x: 0.0, y: 0.0, z: 20.0}, torque: {x: 0.0, y: 0.0, z: 0.0}}}"
+
+rostopic pub -r 100 /left_wrist_ft geometry_msgs/WrenchStamped "{header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: 'wrist_left_ft_link'}, wrench: {force: {x: 0.0, y: 0.0, z: 20.0}, torque: {x: 0.0, y: 0.0, z: 0.0}}}"
+*/
