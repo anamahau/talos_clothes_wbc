@@ -916,6 +916,84 @@ bool armsMove::forceMove(double maxForce)
     return false;
 }
 
+bool armsMove::forceMoveSimple(double maxForce)
+{
+    const double step = 0.02;      // 2 mm per iteration
+    const double timeout = 10.0;    // seconds
+
+    ros::Rate rate(20);
+    ros::Time start = ros::Time::now();
+
+    geometry_msgs::PoseStamped rightTarget;
+    geometry_msgs::PoseStamped leftTarget;
+
+    if (!getRightGripperPose(rightTarget) ||
+        !getLeftGripperPose(leftTarget))
+    {
+        ROS_ERROR("Cannot get initial gripper poses.");
+        return false;
+    }
+
+    while (ros::ok())
+    {
+        ros::spinOnce();
+
+        if (!received_right_ft_ || !received_left_ft_)
+        {
+            ROS_WARN_THROTTLE(1.0, "Waiting for FT measurements...");
+            rate.sleep();
+            continue;
+        }
+
+        double forceR = computeForceNorm(right_ft_msg_);
+        double forceL = computeForceNorm(left_ft_msg_);
+
+        ROS_INFO_STREAM_THROTTLE(0.5, "ForceR = " << forceR << "  ForceL = " << forceL);
+
+        // Stop BOTH arms as soon as EITHER reaches the threshold
+        if (forceR >= maxForce || forceL >= maxForce)
+        {
+            ROS_INFO("Force threshold reached -> stopping both arms.");
+            return true;
+        }
+
+        // Still below threshold -> keep moving both arms
+        rightTarget.pose.position.y -= step;
+        leftTarget.pose.position.y  += step;
+
+        absoluteMoveBoth(
+            {
+                rightTarget.pose.orientation.x,
+                rightTarget.pose.orientation.y,
+                rightTarget.pose.orientation.z,
+                rightTarget.pose.orientation.w,
+                rightTarget.pose.position.x,
+                rightTarget.pose.position.y,
+                rightTarget.pose.position.z
+            },
+            {
+                leftTarget.pose.orientation.x,
+                leftTarget.pose.orientation.y,
+                leftTarget.pose.orientation.z,
+                leftTarget.pose.orientation.w,
+                leftTarget.pose.position.x,
+                leftTarget.pose.position.y,
+                leftTarget.pose.position.z
+            }
+        );
+
+        if ((ros::Time::now() - start).toSec() > timeout)
+        {
+            ROS_WARN("forceMoveSimple timeout reached.");
+            return false;
+        }
+
+        rate.sleep();
+    }
+
+    return false;
+}
+
 bool armsMove::checkGrippingSuccess(double threshold, const std::string& LorR)
 {
     std::deque<double>* buffer = nullptr;

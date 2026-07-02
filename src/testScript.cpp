@@ -66,6 +66,23 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    std::cout << "Press 1 to print grippers poses or 2 to skip: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        geometry_msgs::PoseStamped rightPose;
+        geometry_msgs::PoseStamped leftPose;
+        A.getRightGripperPose(rightPose);
+        A.getLeftGripperPose(leftPose);
+        std::cout << "RIGHT ARM: " << rightPose.pose.position.x << ", " << rightPose.pose.position.y << ", " << rightPose.pose.position.z << std::endl;
+        std::cout << "LEFT ARM: " << leftPose.pose.position.x << ", " << leftPose.pose.position.y << ", " << leftPose.pose.position.z << std::endl;
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }
+
     /*ROS_INFO("\nMoving right arm");
     std::cout << "Press 1 to execute command or 2 to skip this command: ";
     std::cin >> x;
@@ -100,6 +117,46 @@ int main(int argc, char **argv)
     if (x == 1)
     {
         A.forceMove_old(15);
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }
+
+    std::cout << std::endl;
+    ROS_INFO("\nMoving both arms up");
+    std::cout << "Press 1 to execute command or 2 to skip this command: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        geometry_msgs::PoseStamped rightPose;
+        geometry_msgs::PoseStamped leftPose;
+        A.getRightGripperPose(rightPose);
+        A.getLeftGripperPose(leftPose);
+        std::cout << "RIGHT ARM: " << rightPose.pose.position.x << ", " << rightPose.pose.position.y << ", " << rightPose.pose.position.z << std::endl;
+        std::cout << "LEFT ARM: " << leftPose.pose.position.x << ", " << leftPose.pose.position.y << ", " << leftPose.pose.position.z << std::endl;
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, rightPose.pose.position.x, rightPose.pose.position.y, 0.6};
+        success = A.absoluteMoveR(poseR);
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, leftPose.pose.position.x, leftPose.pose.position.y, 0.6};
+        success = A.absoluteMoveL(poseL);
+    }
+    else if (x != 2)
+    {
+        return 0;
+    }
+
+    std::cout << "Press 1 to print grippers poses or 2 to skip: ";
+    std::cin >> x;
+
+    if (x == 1)
+    {
+        geometry_msgs::PoseStamped rightPose;
+        geometry_msgs::PoseStamped leftPose;
+        A.getRightGripperPose(rightPose);
+        A.getLeftGripperPose(leftPose);
+        std::cout << "RIGHT ARM: " << rightPose.pose.position.x << ", " << rightPose.pose.position.y << ", " << rightPose.pose.position.z << std::endl;
+        std::cout << "LEFT ARM: " << leftPose.pose.position.x << ", " << leftPose.pose.position.y << ", " << leftPose.pose.position.z << std::endl;
     }
     else if (x != 2)
     {

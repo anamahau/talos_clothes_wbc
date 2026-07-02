@@ -47,6 +47,7 @@ public:
     static constexpr int forceWindowSize = 10;
     bool checkGrippingSuccess(double threshold, const std::string& LorR);
     double averageForce(const std::deque<double>& buffer);
+    bool forceMoveSimple(double maxForce);
 
 private:
     ros::NodeHandle nh_;
