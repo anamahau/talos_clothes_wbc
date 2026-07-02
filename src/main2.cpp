@@ -648,7 +648,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 29 ~ moving both arms (by force)");
 
-    A.forceMove(10);
+    A.forceMove_old(15);
     
     /* ******************** 30 ******************* */
     std::cout << std::endl;

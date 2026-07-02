@@ -7,8 +7,8 @@ def main():
     rospy.init_node('head_joint_terminal_control')
 
     pub = rospy.Publisher(
-        '/whole_body_kinematic_controller/reference_ref',
-        # '/whole_body_kinematic_controller/head_joints/reference_ref',
+        # '/whole_body_kinematic_controller/reference_ref',
+        '/whole_body_kinematic_controller/head_joints/reference_ref',
         JointState,
         queue_size=10
     )

@@ -907,7 +907,7 @@ int main(int argc, char **argv)
 
     if (x == 1)
     {
-        A.forceMove(20);
+        A.forceMove_old(15);
     }
     else if (x != 2)
     {
