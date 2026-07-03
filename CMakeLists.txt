@@ -237,3 +237,6 @@ target_link_libraries(armLoop ${catkin_LIBRARIES} talos_clothes_wbc_lib)
 
 add_executable(testScript src/testScript.cpp)
 target_link_libraries(testScript ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
+add_executable(experiments src/experiments.cpp)
+target_link_libraries(experiments ${catkin_LIBRARIES} talos_clothes_wbc_lib)

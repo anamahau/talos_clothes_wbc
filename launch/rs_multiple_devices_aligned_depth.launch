@@ -1,0 +1,27 @@
+<!-- LD_LIBRARY_PATH=/opt/ros/melodic/lib:$LD_LIBRARY_PATH roslaunch talos_clothes_wbc rs_multiple_devices_aligned_depth.launch -->
+
+<launch>
+
+  <arg name="serial_no_camera1" default=""/>
+  <arg name="serial_no_camera2" default=""/>
+
+  <arg name="camera1" default="camera1"/>
+  <arg name="camera2" default="camera2"/>
+
+  <group ns="$(arg camera1)">
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="serial_no"        value="$(arg serial_no_camera1)"/>
+      <arg name="tf_prefix"        value="$(arg camera1)"/>
+      <arg name="align_depth"      value="true"/>
+    </include>
+  </group>
+
+  <group ns="$(arg camera2)">
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="serial_no"        value="$(arg serial_no_camera2)"/>
+      <arg name="tf_prefix"        value="$(arg camera2)"/>
+      <arg name="align_depth"      value="true"/>
+    </include>
+  </group>
+
+</launch>
