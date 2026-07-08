@@ -19,6 +19,7 @@ int main(int argc, char **argv)
     // ros::Publisher point_cloud_trigger_pub = node_handle.advertise<std_msgs::Int32>("/PCrequest", 1, true);
     ros::Publisher point_cloud_trigger_pub = node_handle.advertise<std_msgs::Int32>("/PCrequest", 1, false);
     ros::Publisher data_recorder_trigger_pub = node_handle.advertise<std_msgs::Bool>("/data_recorder/trigger", 1, false);
+    ros::Publisher video_trigger_pub = node_handle.advertise<std_msgs::Empty>("/record_trigger", 1);
 
     /* ******************************************* */
     std::cout << "\nPress 1 to move arms to home pose: ";
@@ -49,6 +50,10 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    G.openGripper("R");
+    G.openGripper("L");
+    ros::Duration(2.0).sleep();
+
     /* ******************************************* */
     std::cout << "\nPress 1 to start the program: ";
     std::cin >> x;
@@ -69,12 +74,15 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    ros::Duration(2.0).sleep();
+
     /* ******************** 3 ******************** */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 3 ~ request PC analysis (height of table)");
 
     msgInt32.data = 3;
     point_cloud_trigger_pub.publish(msgInt32);
+    video_trigger_pub.publish(std_msgs::Empty()); // pause
 
     /* ******************** 4 ******************** */
     std::cout << std::endl;
@@ -153,6 +161,7 @@ int main(int argc, char **argv)
     /* ******************************************* */
     std::cout << "\nPress 1 to continue the program: ";
     std::cin >> x;
+    video_trigger_pub.publish(std_msgs::Empty()); // resume
     if (x != 1)
     {
         return 0;
@@ -220,6 +229,8 @@ int main(int argc, char **argv)
     {
         return 0;
     }
+
+    ros::Duration(2.0).sleep();
     
     /* ******************** 9 ******************** */
     std::cout << std::endl;
@@ -275,6 +286,8 @@ int main(int argc, char **argv)
         return 0;
     }
     ros::Duration(headDuration).sleep();
+
+    ros::Duration(2.0).sleep();
     
     /* ******************** 13 ******************* */
     std::cout << std::endl;
@@ -282,6 +295,8 @@ int main(int argc, char **argv)
 
     msgInt32.data = 2;
     point_cloud_trigger_pub.publish(msgInt32);
+
+    video_trigger_pub.publish(std_msgs::Empty()); // pause
     
     /* ******************** 14 ******************* */
     std::cout << std::endl;
@@ -324,6 +339,7 @@ int main(int argc, char **argv)
     /* ******************************************* */
     std::cout << "\nPress 1 to continue the program: ";
     std::cin >> x;
+    video_trigger_pub.publish(std_msgs::Empty()); // resume
     if (x != 1)
     {
         return 0;
@@ -524,6 +540,8 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 24 ~ CeDiRNet");
 
+    video_trigger_pub.publish(std_msgs::Empty()); // pause
+
     waitIdx = 0;
 
     while (waitIdx < 4)
@@ -549,6 +567,7 @@ int main(int argc, char **argv)
     /* ******************************************* */
     std::cout << "\nPress 1 to continue the program: ";
     std::cin >> x;
+    video_trigger_pub.publish(std_msgs::Empty()); // resume
     if (x != 1)
     {
         return 0;
@@ -633,12 +652,15 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    video_trigger_pub.publish(std_msgs::Empty()); // pause
+
     /* ******************************************* */
     float relativeHeight;
     relativeHeight = (0.6 - tableHeight) - 0.20;
     std::cout << "relative move on z: " << relativeHeight << std::endl;
     std::cout << "\nPress 1 to continue the program: ";
     std::cin >> x;
+    video_trigger_pub.publish(std_msgs::Empty()); // resume
     if (x != 1)
     {
         return 0;

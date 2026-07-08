@@ -240,3 +240,6 @@ target_link_libraries(testScript ${catkin_LIBRARIES} talos_clothes_wbc_lib)
 
 add_executable(experiments src/experiments.cpp)
 target_link_libraries(experiments ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
+add_executable(experiments2 src/experiments2.cpp)
+target_link_libraries(experiments2 ${catkin_LIBRARIES} talos_clothes_wbc_lib)

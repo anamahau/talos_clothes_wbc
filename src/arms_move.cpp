@@ -611,7 +611,7 @@ bool armsMove::forceMove_old(const float maxForce)
 {
     ros::Rate rate(50);
     ros::Time start = ros::Time::now();
-    double timeout = 15.0;
+    double timeout = 10.0;
 
     // double forceR = false;
     // double forceL = false;
