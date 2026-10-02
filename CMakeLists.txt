@@ -243,3 +243,6 @@ target_link_libraries(experiments ${catkin_LIBRARIES} talos_clothes_wbc_lib)
 
 add_executable(experiments2 src/experiments2.cpp)
 target_link_libraries(experiments2 ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
+add_executable(referenceImage src/referenceImage.cpp)
+target_link_libraries(referenceImage ${catkin_LIBRARIES} talos_clothes_wbc_lib)

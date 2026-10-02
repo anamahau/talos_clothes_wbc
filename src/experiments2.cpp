@@ -1,8 +1,119 @@
 #include <talos_clothes_wbc/main.h>
 
+#include <regex>
+#include <opencv2/opencv.hpp>
+#include <sensor_msgs/Image.h>
+#include <boost/filesystem.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+
+namespace fs = boost::filesystem;
+
+
+int getNextImageIndex(const std::string& dir, const std::string& prefix)
+{
+    if (!fs::exists(dir))
+    {
+        fs::create_directories(dir);
+        return 0;
+    }
+
+    int maxIndex = -1;
+    std::regex pattern(prefix + R"(_(\d{6})\.png)");
+
+    for (const auto& entry : fs::directory_iterator(dir))
+    {
+        std::string filename = entry.path().filename().string();
+        std::smatch match;
+        if (std::regex_match(filename, match, pattern))
+        {
+            int idx = std::stoi(match[1].str());
+            maxIndex = std::max(maxIndex, idx);
+        }
+    }
+
+    return maxIndex + 1;
+}
+
+bool saveImageFromTopic(ros::NodeHandle& nh,
+                         const std::string& topic,
+                         const std::string& dir,
+                         const std::string& prefix = "image",
+                         double timeout = 5.0)
+{
+    sensor_msgs::ImageConstPtr msg = ros::topic::waitForMessage<sensor_msgs::Image>(
+        topic, nh, ros::Duration(timeout)
+    );
+
+    if (!msg)
+    {
+        ROS_ERROR_STREAM("No image received on topic: " << topic);
+        return false;
+    }
+
+    cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+        ROS_ERROR_STREAM("cv_bridge exception: " << e.what());
+        return false;
+    }
+
+    int index = getNextImageIndex(dir, prefix);
+
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%06d", index);
+    std::string filepath = dir + "/" + prefix + "_" + buf + ".png";
+
+    if (!cv::imwrite(filepath, cv_ptr->image))
+    {
+        ROS_ERROR_STREAM("Failed to write image to: " << filepath);
+        return false;
+    }
+
+    ROS_INFO_STREAM("Saved image to: " << filepath);
+    return true;
+}
+
+
+struct Quaternion
+{
+    double w;
+    double x;
+    double y;
+    double z;
+};
+
+Quaternion EulerToQuaternion(double roll, double pitch, double yaw)
+{
+    // Abbreviations for the various angular functions
+    double cy = std::cos(yaw * 0.5);
+    double sy = std::sin(yaw * 0.5);
+    double cp = std::cos(pitch * 0.5);
+    double sp = std::sin(pitch * 0.5);
+    double cr = std::cos(roll * 0.5);
+    double sr = std::sin(roll * 0.5);
+
+    Quaternion q;
+
+    q.w = cr * cp * cy + sr * sp * sy;
+    q.x = sr * cp * cy - cr * sp * sy;
+    q.y = cr * sp * cy + sr * cp * sy;
+    q.z = cr * cp * sy - sr * sp * cy;
+
+    return q;
+}
+
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "experiments2_node");
+
+    // Quaternion q = EulerToQuaternion(1.3628772478290372, 0.07224361352750375, -1.9667040032384886);
+    // std::cout << "quaternion: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w << std::endl;
 
     ros::NodeHandle node_handle;
 
@@ -67,6 +178,7 @@ int main(int argc, char **argv)
         std::cin >> x;
         if (x == 1)
         {
+            ros::Duration(2.0).sleep();
             G.closeGripper("L", 2);
         }
         else
@@ -148,6 +260,7 @@ int main(int argc, char **argv)
             else
             {
                 std::cout << "==== target point: " << msgCedirnet->pose.position.x << ", " << msgCedirnet->pose.position.y << ", " << msgCedirnet->pose.position.z << std::endl;
+                std::cout << "     quaternion: " << msgCedirnet->pose.orientation.x << ", " << msgCedirnet->pose.orientation.y << ", " << msgCedirnet->pose.orientation.z << ", " << msgCedirnet->pose.orientation.w << std::endl;
                 waitIdx = 4;
             }
         }
@@ -157,89 +270,127 @@ int main(int argc, char **argv)
         }
 
         /* ******************************************* */
-        std::cout << "\nPress 1 to continue the program: ";
+        int qs;
+        std::cout << "\nPress 1 (CeDiRNet quaternion) or 2 (default quaternion): ";
+        std::cin >> qs;
+        if (qs == 1)
+        {
+            poseR = {msgCedirnet->pose.orientation.x, msgCedirnet->pose.orientation.y, msgCedirnet->pose.orientation.z, msgCedirnet->pose.orientation.w, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y-0.2, msgCedirnet->pose.position.z};
+        }
+        else if (qs == 2)
+        {
+            poseR = {0.5, 0.5, -0.5, 0.5, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y-0.2, msgCedirnet->pose.position.z};
+        }
+        else
+        {
+            return 0;
+        }
+        std::cout << "==== poseR: ";
+        for (double a : poseR)
+        {
+            std::cout << a << " ";
+        }
+        std::cout << std::endl;
+        /* ******************************************* */
+
+        /* ******************************************* */
+        std::cout << "\nPress 1 to continue the program or 2 to skip this iteration: ";
         std::cin >> x;
-        video_trigger_pub.publish(std_msgs::Empty()); // resume
-        if (x != 1)
+        if (x == 1)
         {
-            return 0;
-        }
-        /* ******************************************* */
+            video_trigger_pub.publish(std_msgs::Empty()); // resume
 
-        /* ******************** 25 ******************* */
-        std::cout << std::endl;
-        ROS_INFO("\nSTEP 25 ~ moving right arm");
+            /* ******************** 25 ******************* */
+            std::cout << std::endl;
+            ROS_INFO("\nSTEP 25 ~ moving right arm");
 
-        poseR = {0.5, 0.5, -0.5, 0.5, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y-0.15, msgCedirnet->pose.position.z};
-        // std::vector<double> poseR = {msgCedirnet->pose.orientation.x, msgCedirnet->pose.orientation.y, msgCedirnet->pose.orientation.z, msgCedirnet->pose.orientation.w, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y, msgCedirnet->pose.position.z};
-        success = A.absoluteMoveR(poseR, true);
+            // poseR = {0.5, 0.5, -0.5, 0.5, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y-0.2, msgCedirnet->pose.position.z};
+            // poseR = {msgCedirnet->pose.orientation.x, msgCedirnet->pose.orientation.y, msgCedirnet->pose.orientation.z, msgCedirnet->pose.orientation.w, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y, msgCedirnet->pose.position.z};
+            success = A.absoluteMoveR(poseR, true);
 
-        if (!success)
-        {
-            return 0;
-        }
+            if (!success)
+            {
+                return 0;
+            }
+            
+            /* ******************** 26 ******************* */
+            std::cout << std::endl;
+            ROS_INFO("\nSTEP 26 ~ closing right gripper");
+
+            G.closeGripper("R", 3);
+
+            ros::Duration(2.0).sleep();
+
+            /* ******************** 27 ******************* */
+            std::cout << std::endl;
+            ROS_INFO("\nSTEP 27 ~ moving left arm");
+
+            poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.25, 0.6};
+            success = A.absoluteMoveL(poseL, false);
+            
+            if (!success)
+            {
+                return 0;
+            }
+
+            ros::Duration(4.0).sleep();
+
+            /* ******************** 28 ******************* */
+            std::cout << std::endl;
+            ROS_INFO("\nSTEP 28 ~ moving right arm");
+
+            poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.25, 0.6};
+            success = A.absoluteMoveR(poseR, true);
+            
+            if (!success)
+            {
+                return 0;
+            }
+
+            video_trigger_pub.publish(std_msgs::Empty()); // pause
+
+            /* ******************************************* */
+            double forceR = A.computeForceNorm(A.right_ft_msg_);
+            double forceL = A.computeForceNorm(A.left_ft_msg_);
+            std::cout << "right force: " << forceR << ", left force: " << forceL << std::endl;
+            std::cout << "\nPress 1 to continue the program: ";
+            std::cin >> x;
+            video_trigger_pub.publish(std_msgs::Empty()); // resume
+            if (x != 1)
+            {
+                return 0;
+            }
+            /* ******************************************* */
+
+            /* ******************** 29 ******************* */
+            std::cout << std::endl;
+            ROS_INFO("\nSTEP 29 ~ moving both arms (by force)");
+
+            A.forceMove_old(static_cast<int>(std::max(forceR, forceL)) + 3);
+            // A.forceMove_old(25);
+
+            ros::Duration(3.0).sleep();
         
-        /* ******************** 26 ******************* */
-        std::cout << std::endl;
-        ROS_INFO("\nSTEP 26 ~ closing right gripper");
-
-        G.closeGripper("R", 2);
-
-        ros::Duration(2.0).sleep();
-
-        /* ******************** 27 ******************* */
-        std::cout << std::endl;
-        ROS_INFO("\nSTEP 27 ~ moving left arm");
-
-        poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.2, 0.6};
-        success = A.absoluteMoveL(poseL, false);
-        
-        if (!success)
+            video_trigger_pub.publish(std_msgs::Empty()); // pause
+        }
+        else if (x != 2)
         {
             return 0;
         }
 
-        ros::Duration(4.0).sleep();
+        saveImageFromTopic(node_handle, "/camera2/camera/color/image_raw", "/home/pal/docker_anamarija/evaluation");
 
-        /* ******************** 28 ******************* */
-        std::cout << std::endl;
-        ROS_INFO("\nSTEP 28 ~ moving right arm");
-
-        poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.2, 0.6};
-        success = A.absoluteMoveR(poseR, true);
-        
-        if (!success)
-        {
-            return 0;
-        }
-
-        video_trigger_pub.publish(std_msgs::Empty()); // pause
-
-        /* ******************************************* */
-        std::cout << "\nPress 1 to continue the program: ";
-        std::cin >> x;
-        video_trigger_pub.publish(std_msgs::Empty()); // resume
-        if (x != 1)
-        {
-            return 0;
-        }
-        /* ******************************************* */
-
-        /* ******************** 29 ******************* */
-        std::cout << std::endl;
-        ROS_INFO("\nSTEP 29 ~ moving both arms (by force)");
-
-        A.forceMove_old(15);
-    
-        video_trigger_pub.publish(std_msgs::Empty()); // pause
         std::cout << "\nPress 1 to repeat the CeDiRNet grasp: ";
         std::cin >> y;
 
-        if (y == 1)
-        {
-            G.openGripper("R");
-            G.openGripper("L");
-            ros::Duration(2.0).sleep();
-        }
+        // if (y == 1)
+        // {
+        //     G.openGripper("R");
+        //     G.openGripper("L");
+        //     ros::Duration(2.0).sleep();
+        // }
+        G.openGripper("R");
+        G.openGripper("L");
+        ros::Duration(2.0).sleep();
     }
 }

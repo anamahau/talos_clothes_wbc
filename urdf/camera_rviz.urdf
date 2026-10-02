@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="extra_camera_standalone" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find talos_clothes_wbc)/urdf/camera.urdf"/>
+
+  <!-- dummy root link required so this is a valid standalone robot_description -->
+  <link name="camera_dummy_root"/>
+
+  <xacro:extra_realsense parent_link="camera_dummy_root" camera_name="camera_extra" xyz="0 0 0" rpy="0 0 0"/>
+
+</robot>

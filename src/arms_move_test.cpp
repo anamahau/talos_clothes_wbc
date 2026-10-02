@@ -37,6 +37,7 @@ int main(int argc, char **argv)
     if (x == 1)
     {
         // A.absoluteMoveR({0.5, 0.5, -0.5, 0.5, 0.5, 0.0, 0.7});
-        A.relativeMoveR({0.0, 0.0, 0.0, 0.0, 0.0, -0.1});
+        // A.relativeMoveR({0.0, 0.0, 0.0, 0.0, 0.0, -0.1});
+        A.absoluteMoveR({0.326, 0.540, -0.633, 0.449, 0.4467, -0.0866, 0.4362});
     }
 }

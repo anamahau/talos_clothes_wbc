@@ -50,6 +50,8 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    H.jointsMove(headJointsUp, headDuration);
+
     G.openGripper("R");
     G.openGripper("L");
     ros::Duration(2.0).sleep();
@@ -67,7 +69,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 2 ~ moving head down");
 
-    success = H.jointsMove(headJointsDown, headDuration);
+    success = H.jointsMove(headJointsDown_rs, headDuration);
     std::cout << "success: " << success << std::endl;
     if (!success)
     {
@@ -174,13 +176,13 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, maxPoint[0]-0.1, maxPoint[1], maxPoint[2]+0.3};
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, maxPoint[0]-0.1, maxPoint[1], maxPoint[2]+0.35};
         success = A.absoluteMoveR(poseR, true);
         firstRight = true;
     }
     else
     {
-        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, maxPoint[0]-0.1, maxPoint[1], maxPoint[2]+0.3};
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, maxPoint[0]-0.1, maxPoint[1], maxPoint[2]+0.35};
         success = A.absoluteMoveL(poseL, true);
         firstRight = false;
     }
@@ -194,13 +196,13 @@ int main(int argc, char **argv)
     
     if (firstRight)
     {
-        std::vector<double> poseR = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]+0.1};
+        std::vector<double> poseR = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]+0.15};
         success = A.absoluteMoveR(poseR, true);
         firstRight = true;
     }
     else
     {
-        std::vector<double> poseL = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]+0.1};
+        std::vector<double> poseL = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]+0.15};
         success = A.absoluteMoveL(poseL, true);
         firstRight = false;
     }
@@ -216,12 +218,12 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseR = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]};
+        std::vector<double> poseR = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]+0.05};
         success = A.absoluteMoveR(poseR, true);
     }
     else
     {
-        std::vector<double> poseL = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]};
+        std::vector<double> poseL = {0, 0, std::sin(45 * DEG2RAD), (-1) * std::sin(45 * DEG2RAD), maxPoint[0], maxPoint[1], maxPoint[2]+0.05};
         success = A.absoluteMoveL(poseL, true);
     }
 
@@ -262,12 +264,12 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.5, -1 * gripperLength, 0.6};
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.5, -1 * gripperLength - 0.1, 0.6};
         success = A.absoluteMoveR(poseR, true);
     }
     else
     {
-        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.5, gripperLength, 0.6};
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.5, gripperLength + 0.1, 0.6};
         success = A.absoluteMoveL(poseL, true);
     }
 
@@ -280,7 +282,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 12 ~ moving head down");
 
-    success = H.jointsMove(headJointsDown, headDuration);
+    success = H.jointsMove(headJointsDown_rs, headDuration);
     if (!success)
     {
         return 0;
@@ -316,6 +318,7 @@ int main(int argc, char **argv)
         else
         {
             minPoint = msgMin->data;
+            minPoint[0] = minPoint[0] + 0.05;
             minPoint[2] = minPoint[2] + 0.05;
             if (firstRight)
             {
@@ -355,22 +358,31 @@ int main(int argc, char **argv)
         geometry_msgs::PoseStamped current_pose;
         A.getLeftGripperPose(current_pose);
         geometry_msgs::Point position = current_pose.pose.position;
-        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, minPoint[0], position.y, position.z};
-        success = A.absoluteMoveL(poseL, true);
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, minPoint[0], position.y+0.1, position.z};
+        success = A.absoluteMoveL(poseL, false);
     }
     else
     {
         geometry_msgs::PoseStamped current_pose;
         A.getRightGripperPose(current_pose);
         geometry_msgs::Point position = current_pose.pose.position;
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, minPoint[0], position.y, position.z};
-        success = A.absoluteMoveR(poseR, true);
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, minPoint[0], position.y-0.1, position.z};
+        success = A.absoluteMoveR(poseR, false);
     }
 
     if (!success)
     {
         return 0;
     }
+
+    /* ******************************************* */
+    std::cout << "\nPress 1 to continue the program: ";
+    std::cin >> x;
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
         
     /* ******************** 16 ******************* */
     std::cout << std::endl;
@@ -378,12 +390,12 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, minPoint[0], minPoint[1], minPoint[2]};
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, minPoint[0], minPoint[1]+0.05, minPoint[2]};
         success = A.absoluteMoveL(poseL, true);
     }
     else
     {
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, minPoint[0], minPoint[1], minPoint[2]};
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, minPoint[0], minPoint[1]-0.05, minPoint[2]};
         success = A.absoluteMoveR(poseR, true);
     }
 
@@ -505,30 +517,39 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.5, 0.1, 0.7};
-        success = A.absoluteMoveL(poseL, true);
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.5, 0.2, 0.6};
+        success = A.absoluteMoveL(poseL, false);
     }
     else
     {
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.5, -0.1, 0.7};
-        success = A.absoluteMoveR(poseR, true);
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.5, -0.2, 0.6};
+        success = A.absoluteMoveR(poseR, false);
     }
 
     if (!success)
     {
         return 0;
     }
+
+    /* ******************************************* */
+    std::cout << "\nPress 1 to continue the program: ";
+    std::cin >> x;
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
 
     /* ******************** 22 ******************* */
-    std::cout << std::endl;
-    ROS_INFO("\nSTEP 22 ~ moving head down");
+    // std::cout << std::endl;
+    // ROS_INFO("\nSTEP 22 ~ moving head down");
 
-    success = H.jointsMove(headJointsDown_rs, headDuration);
-    if (!success)
-    {
-        return 0;
-    }
-    ros::Duration(headDuration).sleep();
+    // success = H.jointsMove(headJointsDown_rs, headDuration);
+    // if (!success)
+    // {
+    //     return 0;
+    // }
+    // ros::Duration(headDuration).sleep();
     
     /* ******************** 23 ******************* */
     std::cout << std::endl;
@@ -539,6 +560,7 @@ int main(int argc, char **argv)
     /* ******************** 24 ******************* */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 24 ~ CeDiRNet");
+    std::cout << "\t  rostopic pub /cedirnet/goal_pose geometry_msgs/PoseStamped \"{pose: {position: {x: , y: , z: }, orientation: {x: 0.5, y: 0.5, z: -0.5, w: 0.5}}}\"\n";
 
     video_trigger_pub.publish(std_msgs::Empty()); // pause
 
@@ -556,6 +578,7 @@ int main(int argc, char **argv)
         else
         {
             std::cout << "==== target point: " << msgCedirnet->pose.position.x << ", " << msgCedirnet->pose.position.y << ", " << msgCedirnet->pose.position.z << std::endl;
+            std::cout << "     quaternion: " << msgCedirnet->pose.orientation.x << ", " << msgCedirnet->pose.orientation.y << ", " << msgCedirnet->pose.orientation.z << ", " << msgCedirnet->pose.orientation.w << std::endl;
             waitIdx = 4;
         }
     }
@@ -580,7 +603,7 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y, msgCedirnet->pose.position.z};
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y-0.2, msgCedirnet->pose.position.z};
         // std::vector<double> poseR = {msgCedirnet->pose.orientation.x, msgCedirnet->pose.orientation.y, msgCedirnet->pose.orientation.z, msgCedirnet->pose.orientation.w, msgCedirnet->pose.position.x, msgCedirnet->pose.position.y, msgCedirnet->pose.position.z};
         success = A.absoluteMoveR(poseR, true);
     }
@@ -616,12 +639,12 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.2, 0.6};
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.3, 0.6};
         success = A.absoluteMoveL(poseL, false);
     }
     else
     {
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.2, 0.6};
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.3, 0.6};
         success = A.absoluteMoveR(poseR, false);
     }
     
@@ -638,12 +661,12 @@ int main(int argc, char **argv)
 
     if (firstRight)
     {
-        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.2, 0.6};
+        std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.4, -0.3, 0.6};
         success = A.absoluteMoveR(poseR, true);
     }
     else
     {
-        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.2, 0.6};
+        std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.4, 0.3, 0.6};
         success = A.absoluteMoveL(poseL, true);
     }
     
@@ -652,6 +675,29 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    video_trigger_pub.publish(std_msgs::Empty()); // pause
+
+    /* ******************************************* */
+    double forceR = A.computeForceNorm(A.right_ft_msg_);
+    double forceL = A.computeForceNorm(A.left_ft_msg_);
+    std::cout << "right force: " << forceR << ", left force: " << forceL << std::endl;
+    std::cout << "\nPress 1 to continue the program: ";
+    std::cin >> x;
+    video_trigger_pub.publish(std_msgs::Empty()); // resume
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
+    
+    /* ******************** 29 ******************* */
+    std::cout << std::endl;
+    ROS_INFO("\nSTEP 29 ~ moving both arms (by force)");
+
+    A.forceMove_old(static_cast<int>(std::max(forceR, forceL)) + 3);
+    // A.forceMove_old(15);
+
+    ros::Duration(3.0).sleep();
     video_trigger_pub.publish(std_msgs::Empty()); // pause
 
     /* ******************************************* */
@@ -667,18 +713,21 @@ int main(int argc, char **argv)
     }
     /* ******************************************* */
     
-    /* ******************** 29 ******************* */
-    std::cout << std::endl;
-    ROS_INFO("\nSTEP 29 ~ moving both arms (by force)");
-
-    A.forceMove_old(15);
-    
     /* ******************** 30 ******************* */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 30 ~ moving both hands down");
 
     relativePose = {0.0, 0.0, 0.0, 0.0, 0.0, -relativeHeight};
     success = A.relativeMoveBoth(relativePose, relativePose);
+
+    /* ******************************************* */
+    std::cout << "\nPress 1 to continue the program: ";
+    std::cin >> x;
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
 
     /* ******************** 31 ******************* */
     std::cout << std::endl;
@@ -687,12 +736,30 @@ int main(int argc, char **argv)
     relativePose = {0.0, 0.0, 0.0, 0.3, 0.0, 0.0};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
+    /* ******************************************* */
+    std::cout << "\nPress 1 to continue the program: ";
+    std::cin >> x;
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
+
     /* ******************** 32 ******************* */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 32 ~ moving both hands up and backward");
 
     relativePose = {0.0, 0.0, 0.0, -0.15, 0.0, 0.1};
     success = A.relativeMoveBoth(relativePose, relativePose);
+
+    /* ******************************************* */
+    std::cout << "\nPress 1 to continue the program: ";
+    std::cin >> x;
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
 
     /* ******************** 33 ******************* */
     std::cout << std::endl;

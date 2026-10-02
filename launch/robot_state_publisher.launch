@@ -1,0 +1,13 @@
+<launch>
+
+  <!-- build the standalone camera-only robot_description -->
+  <param name="camera_extra_description"
+         command="$(find xacro)/xacro '$(find talos_clothes_wbc)/urdf/camera_rviz.urdf'"/>
+
+  <!-- publish its (trivial, fixed-joint-only) TF -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="camera_extra_rsp">
+    <remap from="robot_description" to="camera_extra_description"/>
+    <remap from="joint_states" to="camera_extra_joint_states"/>
+  </node>
+
+</launch>

@@ -41,13 +41,15 @@ public:
         const std::string& target_frame,
         const std::string& source_frame,
         geometry_msgs::PoseStamped& pose_out);
-    double waitTimeout = 80.0;
+    double waitTimeout = 100.0;
     std::deque<double> right_force_buffer_;
     std::deque<double> left_force_buffer_;
     static constexpr int forceWindowSize = 10;
     bool checkGrippingSuccess(double threshold, const std::string& LorR);
     double averageForce(const std::deque<double>& buffer);
     bool forceMoveSimple(double maxForce);
+    geometry_msgs::WrenchStamped right_ft_msg_;
+    geometry_msgs::WrenchStamped left_ft_msg_;
 
 private:
     ros::NodeHandle nh_;
@@ -55,8 +57,6 @@ private:
     ros::Publisher pub_left_;
     ros::Subscriber sub_right_ft_;
     ros::Subscriber sub_left_ft_;
-    geometry_msgs::WrenchStamped right_ft_msg_;
-    geometry_msgs::WrenchStamped left_ft_msg_;
     void rightFTcallback(const geometry_msgs::WrenchStamped::ConstPtr& msg);
     void leftFTcallback(const geometry_msgs::WrenchStamped::ConstPtr& msg);
     bool received_right_ft_ = false;

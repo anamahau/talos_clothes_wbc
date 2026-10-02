@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<robot name="extra_camera" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="extra_realsense" params="parent_link:=head_2_link camera_name:=camera_extra xyz:='0 0 0' rpy:='0 0 0'">
+
+    <link name="${camera_name}_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://talos_clothes_wbc/meshes/D435i_Solid.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="camera_black">
+          <color rgba="0.05 0.05 0.05 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.09 0.025 0.025"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.072"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="1e-6" iyy="1e-6" izz="1e-6" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+
+    <joint name="${parent_link}_to_${camera_name}" type="fixed">
+      <parent link="${parent_link}"/>
+      <child link="${camera_name}_link"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+
+  </xacro:macro>
+
+</robot>

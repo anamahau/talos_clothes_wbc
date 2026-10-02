@@ -15,8 +15,10 @@ class grippers
         ros::Publisher right_gripper_pub_;
         ros::Publisher left_gripper_pub_;
         constexpr static double OPEN_POS = 0.0;
-        constexpr static double CLOSE_POS_1 = -0.44;
-        constexpr static double CLOSE_POS_2 = -0.54;
+        constexpr static double CLOSE_POS_1 = -0.40;
+        // constexpr static double CLOSE_POS_2 = -0.54;
+        constexpr static double CLOSE_POS_2 = -0.46;
+        constexpr static double CLOSE_POS_3 = -0.41;
         constexpr static double DURATION = 2.0;
         bool sendCommand(const std::string& LorR, double target_pos);
 };

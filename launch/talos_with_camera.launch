@@ -1,0 +1,43 @@
+<launch>
+
+    <!-- Start Talos -->
+    <include file="$(find talos_gazebo)/launch/talos_gazebo.launch"/>
+
+    <!-- Static transform from Talos head to camera -->
+    <!-- <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="head_camera_tf"
+          args="
+              0.08 0.00 0.12
+              0 0 0
+              head_2_link
+              camera_link"/> -->
+
+    <!-- Camera robot description -->
+    <param name="camera_description"
+           textfile="$(find talos_clothes_wbc)/urdf/camera.urdf"/>
+
+    <!-- <node pkg="robot_state_publisher"
+          type="robot_state_publisher"
+          name="camera_state_publisher">
+
+        <param name="robot_description"
+               command="cat $(find talos_clothes_wbc)/urdf/camera.urdf"/>
+
+    </node> -->
+
+    <node pkg="gazebo_ros"
+          type="spawn_model"
+          name="spawn_camera"
+          args="
+          -urdf
+          -param camera_description
+          -model realsense_d435i
+          -x 0.05
+          -y 0
+          -z 1.5
+          -R 0
+          -P 0
+          -Y 0"/>
+
+</launch>

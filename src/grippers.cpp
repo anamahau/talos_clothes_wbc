@@ -30,6 +30,10 @@ bool grippers::closeGripper(const std::string& LorR, const int number)
     {
         return grippers::sendCommand(LorR, CLOSE_POS_2);
     }
+    else if (number == 3)
+    {
+        return grippers::sendCommand(LorR, CLOSE_POS_3);
+    }
 }
 
 bool grippers::sendCommand(const std::string& LorR, double target_pos)
