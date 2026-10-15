@@ -140,6 +140,7 @@ add_library(talos_clothes_wbc_lib
   src/head_move.cpp
   src/arms_move.cpp
   src/torso_move.cpp
+  src/upper_body_move.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -246,3 +247,12 @@ target_link_libraries(experiments2 ${catkin_LIBRARIES} talos_clothes_wbc_lib)
 
 add_executable(referenceImage src/referenceImage.cpp)
 target_link_libraries(referenceImage ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
+add_executable(videoForProject src/videoForProject.cpp)
+target_link_libraries(videoForProject ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
+add_executable(test_folding src/test_folding.cpp)
+target_link_libraries(test_folding ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
+add_executable(test_quality_control src/test_quality_control.cpp)
+target_link_libraries(test_quality_control ${catkin_LIBRARIES} talos_clothes_wbc_lib)

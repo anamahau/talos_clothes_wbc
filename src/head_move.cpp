@@ -5,8 +5,8 @@ headMove::headMove(ros::NodeHandle& nh)
 {
     head_pub_ =
         nh.advertise<sensor_msgs::JointState>(
-            // "/whole_body_kinematic_controller/reference_ref", 1
-            "/whole_body_kinematic_controller/head_joints/reference_ref", 1
+            "/whole_body_kinematic_controller/reference_ref", 1
+            // "/whole_body_kinematic_controller/head_joints/reference_ref", 1
         );
 
     data_recorder_trigger_pub_ =
@@ -23,6 +23,16 @@ headMove::headMove(ros::NodeHandle& nh)
         nh.subscribe(
             "/joint_states", 1, &headMove::jointsStatesCallback, this
         );
+
+    quality_control_trigger_pub_ =
+        nh.advertise<std_msgs::Int32>(
+            "/quality_control/trigger", 1, false
+        );
+    
+    quality_control_saved_sub_ =
+        nh.subscribe(
+            "/quality_control/image_saved", 1, &headMove::qualityControlImageSavedCallback, this
+        );
 }
 
 bool headMove::jointsMove(std::vector<double> joints, float duration)
@@ -33,10 +43,12 @@ bool headMove::jointsMove(std::vector<double> joints, float duration)
 
     traj.name.push_back("head_1_joint");
     traj.name.push_back("head_2_joint");
+    traj.name.push_back("torso_1_joint");
+    traj.name.push_back("torso_2_joint");
 
-    traj.position = joints;
-    traj.velocity = {0.0, 0.0};
-    traj.effort = {0.0, 0.0};
+    traj.position = {joints[0], joints[1], jointValues_[2], jointValues_[3]};
+    traj.velocity = {0.0, 0.0, 0.0, 0.0};
+    traj.effort = {0.0, 0.0, 0.0, 0.0};
         
     head_pub_.publish(traj);
     
@@ -68,8 +80,10 @@ void headMove::cedirnetFinishedCallback(const std_msgs::Bool::ConstPtr& msg)
 
 void headMove::jointsStatesCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
-    jointValues_[0] = msg->position[16];
-    jointValues_[1] = msg->position[17];
+    jointValues_[0] = msg->position[16]; // head_1_joint
+    jointValues_[1] = msg->position[17]; // head_2_joint
+    jointValues_[2] = msg->position[30]; // torso_1_joint
+    jointValues_[3] = msg->position[31]; // torso_2_joint
 }
 
 void headMove::cedirnetMove(float duration)
@@ -105,4 +119,55 @@ void headMove::cedirnetMove(float duration)
 
     headMove::jointsMove({0.0, 0.0}, duration);
 
+}
+
+bool headMove::qualityControlMove(float duration)
+{
+    const std::vector<std::vector<double>> headPosiions = {
+        {0.3, 0.3}, {0.3, 0.0}, {0.3, -0.3},
+        {0.6, -0.3}, {0.6, 0.0}, {0.6, 0.3}
+    };
+
+    const double settleTime = 0.5;
+    const double imageTimeout = 15.0;
+
+    std_msgs::Int32 msgInt;
+    int i = 1;
+
+    for (const auto& joints : headPosiions)
+    {
+        qualityControlImageSaved_ = false;
+
+        jointsMove(joints, duration);
+        ros::Duration(settleTime).sleep();
+
+        ROS_INFO("Head move %d/%zu done, triggering quality control image...",
+            i, headPosiions.size());
+
+        msgInt.data = i;
+        quality_control_trigger_pub_.publish(msgInt);
+
+        ros::Time start = ros::Time::now();
+        ros::Rate rate(10);
+        while (ros::ok() && !qualityControlImageSaved_)
+        {
+            ros::spinOnce();
+            if ((ros::Time::now() - start).toSec() > imageTimeout)
+            {
+                ROS_ERROR("Timeout waiting for quality control image %d", i);
+                jointsMove({0.0, 0.0}, duration);
+                return false;
+            }
+            rate.sleep();
+        }
+        ++i;
+    }
+
+    jointsMove({0.0, 0.0}, duration);
+    return true;
+}
+
+void headMove::qualityControlImageSavedCallback(const std_msgs::Bool::ConstPtr& msg)
+{
+    qualityControlImageSaved_ = msg->data;
 }

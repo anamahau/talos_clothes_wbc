@@ -11,8 +11,10 @@
 #include <geometry_msgs/PoseStamped.h>
 
 #include <talos_clothes_wbc/grippers.h>
-#include <talos_clothes_wbc/head_move.h>
 #include <talos_clothes_wbc/arms_move.h>
+#include <talos_clothes_wbc/head_move.h>
+#include <talos_clothes_wbc/torso_move.h>
+#include <talos_clothes_wbc/upper_body_move.h>
 #include "cloth_detection/cloth_detection_depth.h"
 
 
