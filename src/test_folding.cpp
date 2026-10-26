@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     /* ******************************************* */
     std::cout << "\nPress 1 to move arms to home pose or 2 to skip: ";
     std::cin >> x;
-    if (x != 1 && x != 2)
+    if (x != 1 and x != 2)
     {
         return 0;
     }

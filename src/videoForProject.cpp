@@ -618,4 +618,9 @@ int main(int argc, char **argv)
 7) rostopic pub /highPCpoint std_msgs/Float32MultiArray "{data: [0.45, -0.45, 0.1]}"
 
 15) rostopic pub /lowPCpoint std_msgs/Float32MultiArray "{data: [0.4, 0.1, 0.35]}"
+
+
+rostopic pub /right_gripper_controller/command trajectory_msgs/JointTrajectory "{joint_names: ['gripper_right_joint'], points: [{positions: [0.0], time_from_start: {secs: 2}}]}"
+
+rostopic pub /left_gripper_controller/command trajectory_msgs/JointTrajectory "{joint_names: ['gripper_left_joint'], points: [{positions: [0.0], time_from_start: {secs: 2}}]}"
 */

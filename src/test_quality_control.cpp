@@ -10,37 +10,41 @@ int main(int argc, char **argv)
     armsMove A(node_handle);
 
     /* ******************************************* */
-    std::cout << "\nPress 1 to move arms to home pose: ";
+    std::cout << "\nPress 1 to move arms to home pose or 2 to skip: ";
     std::cin >> x;
-    if (x != 1)
+    if (x != 1 and x != 2)
     {
         return 0;
     }
     /* ******************************************* */
 
     /* ******************** 1 ******************** */
-    std::cout << std::endl;
-    ROS_INFO("\nSTEP 1 ~ move both hands to home pose");
-
     std::vector<double> poseR = {0.5, 0.5, -0.5, 0.5, 0.3, -0.4, 0.3};
-    success = A.absoluteMoveR(poseR, false);
-    if (!success)
-    {
-        return 0;
-    }
-
-    ros::Duration(4.0).sleep();
-
     std::vector<double> poseL = {0.5, 0.5, 0.5, -0.5, 0.3, 0.4, 0.3};
-    success = A.absoluteMoveL(poseL, true);
-    if (!success)
-    {
-        return 0;
-    }
 
-    G.openGripper("R");
-    G.openGripper("L");
-    ros::Duration(2.0).sleep();
+    if (x == 1)
+    {
+        std::cout << std::endl;
+        ROS_INFO("\nSTEP 1 ~ move both hands to home pose");
+
+        success = A.absoluteMoveR(poseR, false);
+        if (!success)
+        {
+            return 0;
+        }
+
+        ros::Duration(4.0).sleep();
+
+        success = A.absoluteMoveL(poseL, true);
+        if (!success)
+        {
+            return 0;
+        }
+
+        G.openGripper("R");
+        G.openGripper("L");
+        ros::Duration(2.0).sleep();    
+    }
 
     /* ******************************************* */
     std::cout << "\nPress 1 to move arms to start pose: ";
@@ -100,6 +104,28 @@ int main(int argc, char **argv)
             y = 0;
         }
     }
+
+    /* ******************************************* */
+    std::cout << "\nPress 1 to check the quality: ";
+    std::cin >> x;
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
+
+    H.qualityControlMove(headDuration);
+
+    /* ******************************************* */
+    std::cout << "\nPress 1 to check the quality: ";
+    std::cin >> x;
+    if (x != 1)
+    {
+        return 0;
+    }
+    /* ******************************************* */
+
+    H.qualityControlMove(headDuration);
 
     /* ******************************************* */
     std::cout << "\nPress 1 to check the quality: ";

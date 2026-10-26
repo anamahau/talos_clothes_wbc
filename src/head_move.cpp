@@ -5,8 +5,8 @@ headMove::headMove(ros::NodeHandle& nh)
 {
     head_pub_ =
         nh.advertise<sensor_msgs::JointState>(
-            "/whole_body_kinematic_controller/reference_ref", 1
-            // "/whole_body_kinematic_controller/head_joints/reference_ref", 1
+            // "/whole_body_kinematic_controller/reference_ref", 1
+            "/whole_body_kinematic_controller/head_torso_joints/reference_ref", 1
         );
 
     data_recorder_trigger_pub_ =
@@ -124,8 +124,8 @@ void headMove::cedirnetMove(float duration)
 bool headMove::qualityControlMove(float duration)
 {
     const std::vector<std::vector<double>> headPosiions = {
-        {0.3, 0.3}, {0.3, 0.0}, {0.3, -0.3},
-        {0.6, -0.3}, {0.6, 0.0}, {0.6, 0.3}
+        {0.25, 0.3}, {0.25, 0.0}, {0.25, -0.3},
+        {0.7, -0.3}, {0.7, 0.0}, {0.7, 0.3}
     };
 
     const double settleTime = 0.5;
@@ -140,6 +140,8 @@ bool headMove::qualityControlMove(float duration)
 
         jointsMove(joints, duration);
         ros::Duration(settleTime).sleep();
+
+        ros::Duration(2.0).sleep();
 
         ROS_INFO("Head move %d/%zu done, triggering quality control image...",
             i, headPosiions.size());
