@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     /* ******************************************* */
 
     double fi = 0.5;
-    double yaw;
 
     /* ******************** 2 ******************** */
     std::cout << std::endl;
@@ -68,11 +67,6 @@ int main(int argc, char **argv)
     {
         return 0;
     }
-    if (!UB.getCurrentYaw(yaw))
-    {
-        return 0;
-    }
-    std::cout << "Current yaw: " << yaw << ", desired rotation: " << -fi << std::endl;
     UB.rotateTorsoWithArms(-fi, 4.0);
 
     /* ******************************************* */
@@ -92,11 +86,6 @@ int main(int argc, char **argv)
     {
         return 0;
     }
-    if (!UB.getCurrentYaw(yaw))
-    {
-        return 0;
-    }
-    std::cout << "Current yaw: " << yaw << ", desired rotation: 0.0" << std::endl;
     UB.rotateTorsoWithArms(fi, 4.0);
 
     /* ******************************************* */
@@ -116,11 +105,6 @@ int main(int argc, char **argv)
     {
         return 0;
     }
-    if (!UB.getCurrentYaw(yaw))
-    {
-        return 0;
-    }
-    std::cout << "Current yaw: " << yaw << ", desired rotation: " << fi << std::endl;
     UB.rotateTorsoWithArms(fi, 4.0);
 
     /* ******************************************* */
@@ -140,11 +124,6 @@ int main(int argc, char **argv)
     {
         return 0;
     }
-    if (!UB.getCurrentYaw(yaw))
-    {
-        return 0;
-    }
-    std::cout << "Current yaw: " << yaw << ", desired rotation: 0.0" << std::endl;
     UB.rotateTorsoWithArms(-fi, 4.0);
 
 }

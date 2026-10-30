@@ -9,8 +9,8 @@ torsoMove::torsoMove(ros::NodeHandle& nh)
     //     );
     pub_ =
         nh.advertise<sensor_msgs::JointState>(
-            "/whole_body_kinematic_controller/reference_ref", 1
-            // "/whole_body_kinematic_controller/head_joints/reference_ref", 1
+            // "/whole_body_kinematic_controller/reference_ref", 1
+            "/whole_body_kinematic_controller/head_torso_joints/reference_ref", 1
         );
 
     joints_states_sub_ =

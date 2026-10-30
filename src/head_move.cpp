@@ -129,7 +129,7 @@ bool headMove::qualityControlMove(float duration)
     };
 
     const double settleTime = 0.5;
-    const double imageTimeout = 15.0;
+    const double imageTimeout = 20.0;
 
     std_msgs::Int32 msgInt;
     int i = 1;

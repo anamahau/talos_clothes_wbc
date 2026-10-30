@@ -59,10 +59,6 @@ int main(int argc, char **argv)
     }
     /* ******************************************* */
 
-    /* ******************* tmp ******************* */
-    H.qualityControlMove(headDuration);
-    /* ******************************************* */
-
     /* ******************** 2 ******************** */
     std::cout << std::endl;
     ROS_INFO("\nSTEP 2 ~ moving torso right");

@@ -117,28 +117,6 @@ int main(int argc, char **argv)
     H.qualityControlMove(headDuration);
 
     /* ******************************************* */
-    std::cout << "\nPress 1 to check the quality: ";
-    std::cin >> x;
-    if (x != 1)
-    {
-        return 0;
-    }
-    /* ******************************************* */
-
-    H.qualityControlMove(headDuration);
-
-    /* ******************************************* */
-    std::cout << "\nPress 1 to check the quality: ";
-    std::cin >> x;
-    if (x != 1)
-    {
-        return 0;
-    }
-    /* ******************************************* */
-
-    H.qualityControlMove(headDuration);
-
-    /* ******************************************* */
     std::cout << "\nPress 1 to open both grippers: ";
     std::cin >> x;
     if (x != 1)
