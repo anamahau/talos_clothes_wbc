@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     /* ******************************************* */
     std::cout << "\nPress 1 to move arms to home pose or 2 to skip: ";
     std::cin >> x;
-    if (x != 1 and x != 2)
+    if (x != 1 && x != 2)
     {
         return 0;
     }
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
-    std::cout << "\nPress 1 to continue (U and B): ";
+    std::cout << "\nPress 1 to continue (B): ";
     std::cin >> x;
     if (x != 1)
     {
@@ -195,10 +195,15 @@ int main(int argc, char **argv)
     /* ******************************************* */
 
     /* ******************** 35 ******************* */
-    std::cout << std::endl;
-    ROS_INFO("\nSTEP 35 ~ moving both hands up and backward");
+    // std::cout << std::endl;
+    // ROS_INFO("\nSTEP 35 ~ moving both hands up and backward");
 
-    relativePose = {0.0, 0.0, 0.0, -0.1, 0.0, 0.1};
+    // relativePose = {0.0, 0.0, 0.0, -0.1, 0.0, 0.1};
+    // success = A.relativeMoveBoth(relativePose, relativePose);
+    std::cout << std::endl;
+    ROS_INFO("\nSTEP 35 ~ moving both hands backward");
+
+    relativePose = {0.0, 0.0, 0.0, -0.1, 0.0, 0.0};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
