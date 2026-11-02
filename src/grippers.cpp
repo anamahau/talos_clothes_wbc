@@ -73,3 +73,33 @@ bool grippers::sendCommand(const std::string& LorR, double target_pos)
 
     return true;
 }
+
+
+bool grippers::openBothGrippers()
+{
+    trajectory_msgs::JointTrajectory right_traj;
+    trajectory_msgs::JointTrajectory left_traj;
+    trajectory_msgs::JointTrajectoryPoint point;
+
+    // Give both controllers the same future start time.
+    const ros::Time start_time = ros::Time::now() + ros::Duration(0.2);
+
+    right_traj.header.stamp = start_time;
+    left_traj.header.stamp = start_time;
+
+    right_traj.joint_names.push_back("gripper_right_joint");
+    left_traj.joint_names.push_back("gripper_left_joint");
+
+    point.positions.push_back(0.0);
+    point.time_from_start = ros::Duration(DURATION);
+
+    right_traj.points.push_back(point);
+    left_traj.points.push_back(point);
+
+    right_gripper_pub_.publish(right_traj);
+    left_gripper_pub_.publish(left_traj);
+
+    (start_time + ros::Duration(DURATION) - ros::Time::now()).sleep();
+
+    return true;
+}

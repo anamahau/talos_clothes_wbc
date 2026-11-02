@@ -11,6 +11,7 @@ class grippers
         explicit grippers(ros::NodeHandle& nh);
         bool openGripper(const std::string& LorR);
         bool closeGripper(const std::string& LorR, const int number);
+        bool openBothGrippers();
     private:
         ros::Publisher right_gripper_pub_;
         ros::Publisher left_gripper_pub_;

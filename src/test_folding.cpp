@@ -152,7 +152,7 @@ int main(int argc, char **argv)
     float relativeHeight;
     relativeHeight = (0.6 - tableHeight) - 0.20;
     std::cout << "relative move on z: " << relativeHeight << std::endl;
-    std::cout << "\nPress 1 to continue (D): ";
+    std::cout << "\nPress 1 to continue (D and B): ";
     std::cin >> x;
     if (x != 1)
     {
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 
     // relativePose = {0.0, 0.0, 0.0, 0.0, 0.0, -relativeHeight};
     // relativePose = {0.0, 0.0, 0.0, 0.0, 0.0, -relativeHeight+0.05};
-    relativePose = {0.0, 0.0, 0.0, 0.0, 0.0, -relativeHeight+0.1};
+    relativePose = {0.0, 0.0, 0.0, -0.1, 0.0, -relativeHeight+0.1};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
@@ -182,7 +182,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 34 ~ moving both hands forward");
 
-    relativePose = {0.0, 0.0, 0.0, 0.2, 0.0, 0.0};
+    relativePose = {0.0, 0.0, 0.0, 0.3, 0.0, 0.0};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 35 ~ moving both hands backward");
 
-    relativePose = {0.0, 0.0, 0.0, -0.1, 0.0, 0.0};
+    relativePose = {0.0, 0.0, 0.0, -0.2, 0.0, 0.0};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
@@ -219,7 +219,8 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 36 ~ opening both grippers");
 
-    G.openGripper("R");
-    G.openGripper("L");
+    // G.openGripper("R");
+    // G.openGripper("L");
+    G.openBothGrippers();
     ros::Duration(2.0).sleep();
 }
