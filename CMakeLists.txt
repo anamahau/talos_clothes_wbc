@@ -259,3 +259,6 @@ target_link_libraries(test_quality_control ${catkin_LIBRARIES} talos_clothes_wbc
 
 add_executable(test_torso_rotations src/test_torso_rotations.cpp)
 target_link_libraries(test_torso_rotations ${catkin_LIBRARIES} talos_clothes_wbc_lib)
+
+add_executable(test_folding_2 src/test_folding_2.cpp)
+target_link_libraries(test_folding_2 ${catkin_LIBRARIES} talos_clothes_wbc_lib)

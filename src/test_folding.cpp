@@ -203,7 +203,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 35 ~ moving both hands backward");
 
-    relativePose = {0.0, 0.0, 0.0, -0.2, 0.0, 0.0};
+    relativePose = {0.0, 0.0, 0.0, -0.2, 0.0, -0.1};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
