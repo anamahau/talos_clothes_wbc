@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 34 ~ moving both hands");
 
-    relativePose = {0.0, 0.0, 0.0, -0.1, 0.0, -0.1};
+    relativePose = {0.0, 0.0, 0.0, -0.15, 0.0, -0.1};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 35 ~ moving both hands");
 
-    relativePose = {0.0, 0.0, 0.0, 0.1, 0.0, -0.1};
+    relativePose = {0.0, 0.0, 0.0, 0.15, 0.0, -0.1};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     ROS_INFO("\nSTEP 36 ~ moving both hands");
 
-    relativePose = {0.0, 0.0, 0.0, -0.1, 0.0, -0.1};
+    relativePose = {0.0, 0.0, 0.0, -0.15, 0.0, -0.1};
     success = A.relativeMoveBoth(relativePose, relativePose);
 
     /* ******************************************* */
