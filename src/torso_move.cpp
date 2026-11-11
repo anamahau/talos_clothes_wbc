@@ -9,8 +9,8 @@ torsoMove::torsoMove(ros::NodeHandle& nh)
     //     );
     pub_ =
         nh.advertise<sensor_msgs::JointState>(
-            // "/whole_body_kinematic_controller/reference_ref", 1
-            "/whole_body_kinematic_controller/head_torso_joints/reference_ref", 1
+            "/whole_body_kinematic_controller/reference_ref", 1
+            // "/whole_body_kinematic_controller/head_joints/reference_ref", 1
         );
 
     joints_states_sub_ =
@@ -125,3 +125,101 @@ void torsoMove::jointsStatesCallback(const sensor_msgs::JointState::ConstPtr& ms
     }
     received_ = true;
 }
+
+void torsoMove::sendReference(double head1, double head2, double torso1, double torso2)
+{
+    sensor_msgs::JointState traj;
+    traj.header.stamp = ros::Time(0);
+    traj.name = {"head_1_joint", "head_2_joint", "torso_1_joint", "torso_2_joint"};
+    traj.position = {head1, head2, torso1, torso2};
+    traj.velocity = {0.0, 0.0, 0.0, 0.0};
+    traj.effort   = {0.0, 0.0, 0.0, 0.0};
+    pub_.publish(traj);
+}
+
+// void torsoMove::sendReference(double torso1, double torso2)
+// {
+//     sendReference(jointValues_[0], jointValues_[1], torso1, torso2);
+// }
+
+double torsoMove::minJerk(double tau)
+{
+    return tau*tau*tau * (10.0 - 15.0*tau + 6.0*tau*tau);
+}
+
+// Smoothly bring head_1, head_2, torso_1 and torso_2 to 0.0
+bool torsoMove::resetHeadTorso(double duration, double tol)
+{
+    if (!waitForState(2.0))
+    {
+        ROS_ERROR("No /joint_states received, cannot reset head and torso");
+        return false;
+    }
+
+    // start from the current joint values
+    const double h1_0 = jointValues_[0];
+    const double h2_0 = jointValues_[1];
+    const double t1_0 = jointValues_[2];
+    const double t2_0 = jointValues_[3];
+
+    ROS_INFO("Resetting head/torso from [%.3f %.3f %.3f %.3f] to zeros",
+             h1_0, h2_0, t1_0, t2_0);
+
+    ros::Rate rate(50);
+    const ros::Time start = ros::Time::now();
+
+    // ---- ramp to zero (min-jerk) ----
+    while (ros::ok())
+    {
+        const double tau = std::min((ros::Time::now() - start).toSec() / duration, 1.0);
+        const double s = 1.0 - minJerk(tau);   // 1 -> 0
+
+        sendReference(h1_0 * s, h2_0 * s, t1_0 * s, t2_0 * s);
+
+        if (tau >= 1.0) break;
+
+        ros::spinOnce();
+        rate.sleep();
+    }
+
+    // ---- settle: keep sending zeros until all joints converge ----
+    while (ros::ok())
+    {
+        sendReference(0.0, 0.0, 0.0, 0.0);
+        ros::spinOnce();
+
+        const double err = std::max(
+            std::max(std::abs(jointValues_[0]), std::abs(jointValues_[1])),
+            std::max(std::abs(jointValues_[2]), std::abs(jointValues_[3])));
+
+        if (err < tol)
+        {
+            ROS_INFO("Head and torso reset to 0.0 (max error %.4f rad)", err);
+            return true;
+        }
+
+        if ((ros::Time::now() - start).toSec() > duration + 10.0)
+        {
+            ROS_WARN("resetHeadTorso: timeout, joints did not converge (max error %.3f rad)", err);
+            return false;
+        }
+        rate.sleep();
+    }
+
+    return false;
+}
+
+// Look up joints by name instead of by hardcoded index
+// void torsoMove::jointsStatesCallback(const sensor_msgs::JointState::ConstPtr& msg)
+// {
+//     const size_t n = std::min(msg->name.size(), msg->position.size());
+//     for (size_t i = 0; i < n; ++i)
+//     {
+//         const std::string& nm = msg->name[i];
+//         if      (nm == "head_1_joint")  jointValues_[0] = msg->position[i];
+//         else if (nm == "head_2_joint")  jointValues_[1] = msg->position[i];
+//         else if (nm == "torso_1_joint") jointValues_[2] = msg->position[i];
+//         else if (nm == "torso_2_joint") jointValues_[3] = msg->position[i];
+//     }
+//     received_ = true;
+// }

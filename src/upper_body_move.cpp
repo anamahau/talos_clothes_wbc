@@ -170,3 +170,61 @@ bool upperBodyMove::poseRelativeToTorso(const std::vector<double>& q,
     poseOut = poseRelativeToTorso(q, target, offset, yaw);
     return true;
 }
+
+bool upperBodyMove::resetHeadTorso(double duration, double tol)
+{
+    if (!torso_.waitForState(2.0))
+    {
+        ROS_ERROR("No /joint_states received, cannot reset head and torso");
+        return false;
+    }
+
+    // start from the current joint values
+    const double h1_0 = torso_.getHead1();
+    const double h2_0 = torso_.getHead2();
+    const double t1_0 = torso_.getTorso1();
+    const double t2_0 = torso_.getTorso2();
+
+    ros::Rate rate(50);
+    const ros::Time start = ros::Time::now();
+
+    // ---- interpolate to zero (min-jerk) ----
+    while (ros::ok())
+    {
+        double tau = std::min((ros::Time::now() - start).toSec() / duration, 1.0);
+        double s = 1.0 - minJerk(tau);   // 1 -> 0
+
+        torso_.sendReference(h1_0 * s, h2_0 * s, t1_0 * s, t2_0 * s);
+
+        if (tau >= 1.0) break;
+
+        ros::spinOnce();
+        rate.sleep();
+    }
+
+    // ---- settle: keep sending zeros until all joints converge ----
+    while (ros::ok())
+    {
+        torso_.sendReference(0.0, 0.0, 0.0, 0.0);
+        ros::spinOnce();
+
+        double err = std::max({std::abs(torso_.getHead1()),
+                               std::abs(torso_.getHead2()),
+                               std::abs(torso_.getTorso1()),
+                               std::abs(torso_.getTorso2())});
+        if (err < tol)
+        {
+            ROS_INFO("Head and torso reset to 0.0");
+            return true;
+        }
+
+        if ((ros::Time::now() - start).toSec() > duration + 10.0)
+        {
+            ROS_WARN("resetHeadTorso: timeout, joints did not converge (max error %.3f rad)", err);
+            return false;
+        }
+        rate.sleep();
+    }
+
+    return false;
+}

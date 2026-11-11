@@ -34,6 +34,10 @@ public:
                                                    const tf2::Vector3& target,
                                                    const tf2::Vector3& offset,
                                                    double yaw);
+    
+    // Smoothly move head_1, head_2, torso_1, torso_2 to 0.0 over `duration` [s]
+    // and wait until all four are within `tol` [rad].
+    bool resetHeadTorso(double duration = 3.0, double tol = 0.02);
 
 private:
     armsMove& arms_;
